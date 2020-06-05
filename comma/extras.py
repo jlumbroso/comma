@@ -68,7 +68,10 @@ except ImportError:
     # Define our own helper method
     # Based on file(1), see https://stackoverflow.com/a/7392391/408734
     TEXT_CHARS = bytearray({7,8,9,10,12,13,27} | set(range(0x20, 0x100)) - {0x7f})
-    _is_binary_string = lambda bytestring: bool(bytestring.translate(None, TEXT_CHARS))
+
+    def _is_binary_string(bytestring):
+        return bool(bytestring.translate(None, TEXT_CHARS))
+
 
 def is_binary_string(bytestring, truncate=True):
     """
@@ -104,6 +107,7 @@ def _detect_encoding_by_bom(sample, default=None):
         if any(sample.startswith(bom) for bom in boms): return enc
     
     return default
+
 
 detect_encoding = _detect_encoding_by_bom
 

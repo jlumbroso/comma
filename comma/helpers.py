@@ -23,6 +23,8 @@ __all__ = [
     "URI_SCHEME_LOCAL",
     "URI_SCHEMES_ACCEPTED",
 
+    "SourceType",
+
     "is_local",
     "is_url",
     "open_stream",
@@ -34,6 +36,14 @@ MAX_SAMPLE_CHUNKSIZE = 10000
 URI_SCHEME_LOCAL = "file"
 
 URI_SCHEMES_ACCEPTED = ["http", "https"]
+
+
+# our type hint for a data source:
+#  - a location (URL or file path), or string data
+#  - a stream (text or binary)
+#  - a string of bytes
+
+SourceType = typing.Union[typing.AnyStr, typing.IO, bytes]
 
 
 def is_local(location: typing.AnyStr) -> typing.Optional[str]:
@@ -91,7 +101,7 @@ def is_local(location: typing.AnyStr) -> typing.Optional[str]:
     return
 
 
-def is_url(location: str, no_request: bool=False) -> bool:
+def is_url(location: str, no_request: bool = False) -> bool:
     """
     Detects whether a string location is a URL; may make a test HEAD request
     if the location is likely to be an actual URL (this behavior can be
@@ -156,10 +166,10 @@ def is_url(location: str, no_request: bool=False) -> bool:
 
 
 def open_stream(
-    source: typing.Union[typing.AnyStr, typing.IO],
-    encoding: str=None,
-    no_request: bool=False
-) -> typing.TextIO:
+    source: SourceType,
+    encoding: str = None,
+    no_request: bool = False
+) -> typing.Optional[typing.TextIO]:
     """
     Returns a seekable stream for text data that is properly decoded
     and ready to be read: The `source` can be actual data, a local file
@@ -169,9 +179,14 @@ def open_stream(
     
     if source is None:
         return
+
+    # local variable to keep track of the (most accurate for the user)
+    # caption of the source
+    internal_name = None
     
     # is this a STRING?
     if type(source) is str:
+        source = typing.cast(typing.AnyStr, source)
         
         # multiline?
         if "\n" in source:
@@ -184,7 +199,7 @@ def open_stream(
         
         # is this a FILE?
         local_path = is_local(location=source)
-        if local_path != False:
+        if local_path is not None:
             source = open(local_path, mode="rb")
         
         # is this a URL?
@@ -205,13 +220,12 @@ def open_stream(
         
         else:
             return None
-    
-    
+
     # is this BYTES?
     if type(source) is bytes:
+        source = typing.cast(bytes, source)
         source = io.BytesIO(source)
-            
-    
+
     # is this a STREAM?
     if hasattr(source, "seekable"):
         
@@ -266,7 +280,6 @@ def open_stream(
                     "provided ZIP source is ambiguous, "
                     "contains multiple files: {}".format(names))
     
-    
     # if at this point, has not been converted to stream, error
     if not hasattr(source, "seekable"):
         return None
@@ -289,3 +302,20 @@ def open_stream(
             pass
     
     return source
+
+
+def comment_stripper(stream: typing.TextIO, comment_line_chars: str = '#;'):
+    for line in stream.readlines():
+        
+        stripped_line = line.strip()
+        if not stripped_line:
+            # empty lines
+            continue
+
+        # look at first character
+        if stripped_line[:1] in comment_line_chars:
+            # lines that are commented out
+            continue
+
+        # yield line
+        yield line
