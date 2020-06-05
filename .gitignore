@@ -1,3 +1,9 @@
+# macOS metadata
+.DS_Store
+
+# Sandbox folder
+sandbox/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
