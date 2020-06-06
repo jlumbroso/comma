@@ -16,7 +16,7 @@ except ImportError:
 import comma.extras
 
 
-__author__ = ("Jérémie Lumbroso <lumbroso@cs.princeton.edu>")
+__author__ = "Jérémie Lumbroso <lumbroso@cs.princeton.edu>"
 
 __all__ = [
     "MAX_SAMPLE_CHUNKSIZE",
@@ -29,6 +29,8 @@ __all__ = [
     "is_url",
     "detect_line_terminator",
     "open_stream",
+
+    "multislice_sequence",
 ]
 
 
@@ -382,6 +384,22 @@ def open_stream(
             pass
     
     return source
+
+
+def multislice_sequence(
+        slice_list: typing.List[slice],
+        sequence: typing.Sequence[typing.Any]
+) -> typing.Sequence[typing.Any]:
+    """
+    Returns the sub-sequence obtained from sequentially slicing the
+    sequence `sequence` according to the series of slices in `slice_list`.
+    """
+    new_sequence = sequence
+
+    for sl in slice_list:
+        new_sequence = new_sequence.__getitem__(sl)
+
+    return new_sequence
 
 
 def comment_stripper(stream: typing.TextIO, comment_line_chars: str = '#;'):
