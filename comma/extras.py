@@ -30,10 +30,16 @@ try:
         sniffer = clevercsv.Sniffer()
         truncated_sample = sample[:comma.helpers.MAX_SAMPLE_CHUNKSIZE]
         simple_dialect = sniffer.detect(sample=truncated_sample, delimiters=delimiters)
+        line_terminator = comma.helpers.detect_line_terminator(truncated_sample)
+
+        dialect = simple_dialect.to_csv_dialect()
+        dialect.lineterminator = line_terminator
+
         return {
-            "dialect": simple_dialect.to_csv_dialect(),
-            "simple-dialect": simple_dialect,
+            "dialect": dialect,
+            "simple_dialect": simple_dialect,
             "has_header": sniffer.has_header(sample=truncated_sample),
+            "line_terminator": line_terminator,
         }
 
 except ImportError:
@@ -43,10 +49,17 @@ except ImportError:
     def detect_csv_type(sample, delimiters=None):
         sniffer = csv.Sniffer()
         truncated_sample = sample[:comma.helpers.MAX_SAMPLE_CHUNKSIZE]
+
+        line_terminator = comma.helpers.detect_line_terminator(truncated_sample)
+
+        dialect = sniffer.sniff(sample=truncated_sample, delimiters=delimiters)
+        dialect.lineterminator = line_terminator
+
         return {
-            "dialect": sniffer.sniff(sample=truncated_sample, delimiters=delimiters),
-            "simple-dialect": None,
+            "dialect": dialect,
+            "simple_dialect": None,
             "has_header": sniffer.has_header(sample=truncated_sample),
+            "line_terminator": line_terminator,
         }
 
 
