@@ -50,6 +50,40 @@ LINE_TERMINATOR_DEFAULT = "\n"
 
 SourceType = typing.Union[typing.AnyStr, typing.IO, bytes]
 
+# type definitions for helper dictionaries
+# (commented out for the moment because only Python 3.8+ compatible)
+
+# class CommaInfoParams(typing.TypedDict):
+#     dialect:         typing.Any
+#     simple_dialect:  typing.Any
+#     has_header:      bool
+#     line_terminator: str
+#
+# class CommaInfo(typing.TypedDict):
+#
+#     # the parsed CSV rows
+#     rows:   typing.List[typing.List[str]]
+#
+#     # a raw sample of the original file
+#     sample: str
+#
+#     # an identifier for the source (if not raw buffer)
+#     source: str
+#
+#     # CSV parameters
+#     header: typing.Optional[typing.List[str]]
+#     params: CommaInfoParams
+
+
+def is_anystr(obj: typing.Union[typing.Any, typing.AnyStr]) -> bool:
+    """
+    Returns `True` if the `obj` object is of type `typing.AnyStr`.
+    """
+    return (
+            obj is not None and
+            (isinstance(obj, str) or
+             isinstance(obj, bytes)))
+
 
 def is_local(location: typing.AnyStr) -> typing.Optional[str]:
     """
