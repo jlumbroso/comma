@@ -22,6 +22,8 @@ __all__ = [
     "MAX_SAMPLE_CHUNKSIZE",
     "URI_SCHEME_LOCAL",
     "URI_SCHEMES_ACCEPTED",
+    "LINE_TERMINATORS",
+    "LINE_TERMINATOR_DEFAULT",
 
     "SourceType",
 
@@ -106,11 +108,13 @@ def is_local(location: typing.AnyStr) -> typing.Optional[str]:
         #   scheme=..., netloc=..., path=...,
         #   params=..., query=..., fragment=...)
 
+    except TypeError:
+        parsed_location = None
     except AttributeError:
-        # May not be a string; regular paths should be parsed without
-        # trouble
-        return
-    
+        parsed_location = None
+
+    # May not be a string; regular paths should be parsed without
+    # trouble
     if parsed_location is None:
         return
         
@@ -222,6 +226,15 @@ def detect_line_terminator(
 
     if sample is None or not hasattr(sample, "count"):
         return default
+
+    # check to see if can obtain valid counts for all line terminators
+    for lt in LINE_TERMINATORS:
+        try:
+            val = sample.count(lt)
+            if type(val) is not int:
+                return default
+        except TypeError:
+            return default
 
     # the sorting of options is made taking into account both
     # the number of occurrences of a pattern, and the length of
