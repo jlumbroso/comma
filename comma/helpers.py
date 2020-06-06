@@ -387,8 +387,8 @@ def open_stream(
 
 
 def multislice_sequence(
-        slice_list: typing.List[slice],
-        sequence: typing.Sequence[typing.Any]
+        sequence: typing.Sequence[typing.Any],
+        slice_list: typing.List[slice] = None,
 ) -> typing.Sequence[typing.Any]:
     """
     Returns the sub-sequence obtained from sequentially slicing the
@@ -396,8 +396,9 @@ def multislice_sequence(
     """
     new_sequence = sequence
 
-    for sl in slice_list:
-        new_sequence = new_sequence.__getitem__(sl)
+    if slice_list is not None:
+        for sl in slice_list:
+            new_sequence = new_sequence.__getitem__(sl)
 
     return new_sequence
 
