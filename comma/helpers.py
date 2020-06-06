@@ -27,6 +27,7 @@ __all__ = [
 
     "is_local",
     "is_url",
+    "detect_line_terminator",
     "open_stream",
 ]
 
@@ -36,6 +37,10 @@ MAX_SAMPLE_CHUNKSIZE = 10000
 URI_SCHEME_LOCAL = "file"
 
 URI_SCHEMES_ACCEPTED = ["http", "https"]
+
+LINE_TERMINATORS = ["\r\n", "\r", "\n"]
+
+LINE_TERMINATOR_DEFAULT = "\n"
 
 
 # our type hint for a data source:
@@ -163,6 +168,47 @@ def is_url(location: str, no_request: bool = False) -> bool:
         return False
     
     return response.ok
+
+
+def detect_line_terminator(
+        sample: typing.Optional[typing.AnyStr],
+        default: typing.Optional[typing.AnyStr] = None
+) -> str:
+    """
+    Detects the most likely line terminator (from `\r`, `\n`, `\r\n`), given
+    a sample string, by counting the occurrences of each pattern and finding
+    the longest and most frequent.
+    """
+
+    # update default
+    if default is None:
+        default = LINE_TERMINATOR_DEFAULT
+
+    if sample is None or not hasattr(sample, "count"):
+        return default
+
+    # the sorting of options is made taking into account both
+    # the number of occurrences of a pattern, and the length of
+    # the pattern (this is so when "\r\n" occurs, it also boosts
+    # the count of "\r" and "\n", so we must also look at the
+    # LONGEST pattern with the best number of occurrences)
+
+    ranked_options = sorted(
+        zip(
+            map(sample.count, LINE_TERMINATORS),  # counts
+            map(len, LINE_TERMINATORS),           # length
+            LINE_TERMINATORS),                    # line terminators
+        reverse=True)
+
+    best_option = ranked_options[0]
+
+    # if the best option has been counted 0 times, means no line terminators
+    # were found
+    if best_option[0] == 0:
+        return default
+
+    # otherwise return the value of the best option
+    return best_option[2]
 
 
 def open_stream(
