@@ -4,6 +4,9 @@ import comma.extras
 import pytest
 
 
+class TestIsBinaryString:
+    pass
+
 class TestDetectEncoding:
 
     SOME_UTF8_STRING_KANJI = (

@@ -65,7 +65,17 @@ except ImportError:
 
 # Better detection of binary data (i.e., zipped files), thanks to binaryornot
 
-_is_binary_string = None
+
+# In case the package is not available: Define our own helper method
+# Based on file(1), see https://stackoverflow.com/a/7392391/408734
+TEXT_CHARS = bytearray({7,8,9,10,12,13,27} | set(range(0x20, 0x100)) - {0x7f})
+
+
+def _is_binary_string_internal(bytestring):
+    return bool(bytestring.translate(None, TEXT_CHARS))
+
+
+_is_binary_string = _is_binary_string_internal
 
 try:
     # See https://github.com/audreyr/binaryornot/
@@ -75,15 +85,8 @@ try:
     # Alias to helper method
     _is_binary_string = binaryornot.helpers.is_binary_string
 
-except ImportError:
+except ImportError:  # pragma: no cover
     binaryornot = None
-    
-    # Define our own helper method
-    # Based on file(1), see https://stackoverflow.com/a/7392391/408734
-    TEXT_CHARS = bytearray({7,8,9,10,12,13,27} | set(range(0x20, 0x100)) - {0x7f})
-
-    def _is_binary_string(bytestring):
-        return bool(bytestring.translate(None, TEXT_CHARS))
 
 
 def is_binary_string(bytestring, truncate=True):
