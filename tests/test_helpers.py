@@ -176,6 +176,10 @@ class TestIsUrl:
         assert not comma.helpers.is_url(self.SOME_URL)
 
 
+class TestOpenStream:
+    pass
+
+
 class TestDetectLineTerminator:
     """
 
