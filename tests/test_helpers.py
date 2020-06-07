@@ -3,6 +3,12 @@ import os
 import typing
 
 import pytest
+try:
+    import requests
+except ImportError:
+    # this is an optional package
+    requests = None
+
 
 import comma.helpers
 
@@ -112,10 +118,62 @@ class TestIsLocal:
 
 class TestIsUrl:
     """
-    Test cases for the comma.helpers.is_anystr() method.
+    Test cases for the comma.helpers.is_url() method.
     """
 
-    pass
+    class BogusDecodeClass:
+        def decode(self):
+            pass
+
+    TRUE_CASES = ["http://somedomaine.com"]
+    FALSE_CASES = ["", ".", "://someschemelesspath", "file://somelocalpath/", "file:///./"]
+    INVALID_CASES = [None, {"somekey": "somevalue"}, BogusDecodeClass()]
+
+    SOME_URL = "http://testurl.com/testfile.csv"
+
+    @pytest.mark.parametrize('value', TRUE_CASES)
+    def test_true(self, value):
+        assert comma.helpers.is_url(value, no_request=True)
+
+    @pytest.mark.parametrize('value', FALSE_CASES)
+    def test_false(self, value):
+        assert not comma.helpers.is_url(value, no_request=True)
+
+    @pytest.mark.parametrize("value", INVALID_CASES)
+    def test_invalid_input(self, value):
+        """
+        Tests whether obviously invalid input types return `None` (likely after
+        failing and catching an internal exception).
+        """
+        casted_value = typing.cast(typing.AnyStr, value)  # (purposefully) invalid cast
+        assert not comma.helpers.is_url(casted_value, no_request=True)
+
+    def test_requests_success(self, requests_mock):
+        # package is optional
+        if requests is None:
+            assert True
+            return
+
+        requests_mock.head(self.SOME_URL, status_code=200)
+        assert comma.helpers.is_url(self.SOME_URL)
+
+    def test_requests_failed(self, mocker, requests_mock):
+        # package is optional
+        if requests is None:
+            assert True
+            return
+
+        # we can handle a connection error
+        requests_mock.head(self.SOME_URL, exc=requests.exceptions.ConnectionError)
+        assert not comma.helpers.is_url(self.SOME_URL)
+
+        # we can also handle an invalid scheme error
+        requests_mock.head(self.SOME_URL, exc=requests.exceptions.InvalidSchema)
+        assert not comma.helpers.is_url(self.SOME_URL)
+
+        # we can handle if somehow the returned response is None
+        mocker.patch("requests.head", return_value=None)
+        assert not comma.helpers.is_url(self.SOME_URL)
 
 
 class TestDetectLineTerminator:

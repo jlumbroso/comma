@@ -10,7 +10,7 @@ import zipfile
 
 try:
     import requests
-except ImportError:
+except ImportError:  # pragma: no cover
     requests = None
 
 import comma.extras
@@ -169,11 +169,11 @@ def is_url(location: str, no_request: bool = False) -> bool:
 
     except AttributeError:
         # May not be a string
-        return False
+        parsed_location = None
     
     except Exception as exc:
         # Unexpected error
-        return False
+        parsed_location = None
     
     if parsed_location is None:
         return False
