@@ -177,7 +177,59 @@ class TestIsUrl:
 
 
 class TestOpenStream:
-    pass
+
+    @staticmethod
+    def check_stream(
+            stream: typing.IO,
+            check_seekable: typing.Optional[bool] = None,
+            check_position: typing.Optional[int] = None,
+            reset_position: typing.Optional[bool] = False,
+            check_content: typing.Optional[typing.AnyStr] = None,
+            check_closeable: typing.Optional[bool] = True
+    ) -> typing.NoReturn:
+        # check input is not None
+        assert stream is not None
+
+        # check input is a stream
+        assert hasattr(stream, "seekable")
+
+        # check_seekable
+        if check_seekable is not None:
+            assert stream.seekable() == check_seekable
+
+        # check_position
+        if check_position is not None:
+            if hasattr(stream, "tell"):
+                assert stream.tell() == check_position
+            elif hasattr(stream, "seek"):
+                # stream.seek(0, 1) is an alternate to stream.tell()
+                assert stream.seek(0, 1) == check_position
+
+        # reset_position
+        if reset_position is not None and reset_position:
+            # the stream.seek(0) will fail if these don't pass
+            assert hasattr(stream, "seekable")
+            assert stream.seekable()
+
+            # reset the stream's position
+            stream.seek(0)
+
+        # check_content
+        if check_content is not None and check_content:
+            content = stream.read()
+            assert content == check_content
+
+        # check_closeable
+        if check_closeable is not None and check_closeable:
+            assert hasattr(stream, "closed") and not stream.closed
+            assert hasattr(stream, "close")
+            stream.close()
+            assert stream.closed
+
+    def test_none_source(self):
+        casted_none = typing.cast(
+            comma.helpers.SourceType, None)  # (purposefully) invalid cast
+        assert comma.helpers.open_stream(source=casted_none) is None
 
 
 class TestDetectLineTerminator:
