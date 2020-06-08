@@ -284,11 +284,15 @@ def open_stream(
         source = typing.cast(typing.AnyStr, source)
         
         # multiline?
-        if "\n" in source:
-            newline = "\n"
-            if "\r\n" in source:
-                newline = "\r\n"
-            return io.StringIO(initial_value=source, newline=newline)
+        if "\n" in source or "\r" in source:
+            newline = comma.helpers.detect_line_terminator(
+                sample=source,
+                default="\n")
+
+            # change to a standard newline
+            source = source.replace(newline, "\n")
+
+            return io.StringIO(initial_value=source, newline="\n")
         
         internal_name = source
         

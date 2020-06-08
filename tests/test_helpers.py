@@ -1,4 +1,5 @@
 
+import io
 import os
 import typing
 
@@ -8,7 +9,6 @@ try:
 except ImportError:
     # this is an optional package
     requests = None
-
 
 import comma.helpers
 
@@ -178,6 +178,8 @@ class TestIsUrl:
 
 class TestOpenStream:
 
+    SOME_DATA = "col1,col2,col3\n,'row1',1,2\n'row2',5,6\n"
+
     @staticmethod
     def check_stream(
             stream: typing.IO,
@@ -232,6 +234,24 @@ class TestOpenStream:
         casted_none = typing.cast(
             comma.helpers.SourceType, None)  # (purposefully) invalid cast
         assert comma.helpers.open_stream(source=casted_none) is None
+
+    def test_string_data_input(self):
+        result = comma.helpers.open_stream(source=self.SOME_DATA)
+        TestOpenStream.check_stream(stream=result, check_content=self.SOME_DATA)
+
+    def test_string_data_input_windows_newline(self):
+        some_windows_data = self.SOME_DATA.replace("\n", "\r\n")
+        result = comma.helpers.open_stream(source=some_windows_data)
+
+        # the resulting stream should be normalized, despite the windows newline
+        TestOpenStream.check_stream(stream=result, check_content=self.SOME_DATA)
+
+    # FIXME: apparently open is not patched properly
+    # def test_file_open(self, mocker):
+    #     mocker.patch("comma.helpers.is_local", return_value="file.csv")
+    #     mocker.patch("comma.helpers.open", return_value=io.BytesIO(b"aaa\0"))
+    #     result = comma.helpers.open_stream(source="file.csv")
+    #     TestOpenStream.check_stream(stream=result, check_content=b"aaa\0")
 
 
 class TestDetectLineTerminator:
