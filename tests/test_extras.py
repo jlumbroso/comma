@@ -1,11 +1,77 @@
 
 import comma.extras
+import comma.helpers  # for comma.helpers.MAX_SAMPLE_CHUNKSIZE
 
 import pytest
 
 
 class TestIsBinaryString:
-    pass
+
+    class BogusClass:
+        pass
+
+    SOME_BINARY_STRING_1 = (
+        b"PK\x03\x04\x14\x00\x00\x00\x08\x00\x9dftD\x8d5\xdbe\r"
+        b"\x13|\x00\x10\x1a=\x02\n\x00\x1c\x00itcont.txtUT\t\x00"
+        b"\x03\xe9\x1c+S\xe8\x1c+Sux\x0b\x00\x01\x04e\x00\x00\x00"
+        b"\x04d\x00\x00\x00\xbc\\\xdb\x92\xa3\xb8\xb2}?_\xa1\xa7"
+        b"\xd9/\xdd\xb1\x11w\x1ee\x90\x8d\xca\x80\xd8\x02\xca\xe3"
+        b"\xfe\x16}\xfc")  # from a ZIP file
+
+    SOME_BINARY_STRING_2 = (
+        b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00H\x00"
+        b"H\x00\x00\xff\xe1\x00\xb2Exif\x00\x00MM\x00*\x00\x00\x00"
+        b"\x08\x00\x06\x01\x12\x00\x03\x00\x00\x00\x01\x00\x01\x00"
+        b"\x00\x01\x1a\x00\x05\x00\x00\x00\x01\x00\x00\x00V\x01\x1b"
+        b"\x00\x05\x00\x00\x00\x01\x00\x00\x00^\x01(\x00\x03\x00\x00"
+        b"\x00\x01\x00\x02\x00\x00\x01;\x00\x02\x00\x00\x00\x19\x00"
+        b"\x00\x00f")  # from a JPG file
+
+    SOME_NON_BINARY_STRING = (
+        b"\xe5\xb7\x9d\xe6\x9c\x88\xe6\x9c\xa8\xe5\xbf\x83\xe7"
+        b"\x81\xab\xe5\xb7\xa6\xe5\x8c\x97\xe4\xbb\x8a\xe5\x90"
+        b"\x8d\xe7\xbe\x8e\xe8\xa6\x8b\xe5\xa4\x96\xe6\x88\x90"
+        b"\xe7\xa9\xba\xe6\x98\x8e\xe9\x9d\x99\xe6\xb5\xb7\xe9"
+        b"\x9b\xb2\xe6\x96\xb0\xe8\xaa\x9e\xe9\x81\x93\xe8\x81"
+        b"\x9e\xe5\xbc\xb7\xe9\xa3\x9b")  # also the Kanji string
+
+    TRUE_CASES = [SOME_BINARY_STRING_1, SOME_BINARY_STRING_2]
+    FALSE_CASES = [SOME_NON_BINARY_STRING]
+    EDGE_CASES = [None, "", b"", BogusClass()]
+
+    @pytest.mark.parametrize("bytestring", TRUE_CASES)
+    def test_helper_internal_true(self, bytestring):
+        assert comma.extras._is_binary_string_internal(bytestring)  # pylint: disable=protected-access
+
+    @pytest.mark.parametrize("bytestring", FALSE_CASES)
+    def test_helper_internal_false(self, bytestring):
+        assert not comma.extras._is_binary_string_internal(bytestring)  # pylint: disable=protected-access
+
+    @pytest.mark.parametrize("bytestring", TRUE_CASES)
+    def test_helper_true(self, bytestring):
+        assert comma.extras._is_binary_string(bytestring)  # pylint: disable=protected-access
+
+    @pytest.mark.parametrize("bytestring", FALSE_CASES)
+    def test_helper_false(self, bytestring):
+        assert not comma.extras._is_binary_string(bytestring)  # pylint: disable=protected-access
+
+    @pytest.mark.parametrize("value", EDGE_CASES)
+    def test_edge_cases(self, value):
+        assert not comma.extras.is_binary_string(value)
+
+    def test_truncate(self, mocker):
+        # construct a value larger than accepted
+        max_size = comma.helpers.MAX_SAMPLE_CHUNKSIZE
+        long_value = "\0" * (max_size + 10)
+
+        mocker.patch("comma.extras._is_binary_string", return_value=True)
+
+        # we expected return_value=True (even/especially since it shouldn't
+        # and wouldn't if the method had not been patched)
+        assert comma.extras.is_binary_string(long_value, truncate=True)
+
+        comma.extras._is_binary_string.assert_called_once_with(
+            long_value[:max_size])  # pylint: disable=protected-access
 
 
 class TestDetectEncoding:
