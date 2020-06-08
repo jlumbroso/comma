@@ -5,6 +5,55 @@ import comma.helpers  # for comma.helpers.MAX_SAMPLE_CHUNKSIZE
 import pytest
 
 
+class TestDetectCsvType:
+
+    SOME_STRING = "0,1,2\n"
+
+    # fields expected in the dictionary returned by this method
+    EXPECTED_FIELDS = [
+        "dialect", "simple_dialect", "has_header", "line_terminator"]
+
+    def test_fields_available_in_default(self):
+        """
+        Checks that the internal method, which uses the default Python
+        `csv` package returns the expected kind of dictionary, with all
+        expected fields.
+        """
+
+        result = comma.extras._default_detect_csv_type(sample=self.SOME_STRING)
+        for fieldname in self.EXPECTED_FIELDS:
+            assert fieldname in result
+
+    def test_fields_available(self):
+        """
+        Checks that the publicly available `detect_csv_type()` method returns
+        the expected kind of dictionary, with all expected fields.
+        """
+
+        result = comma.extras.detect_csv_type(sample=self.SOME_STRING)
+        for fieldname in self.EXPECTED_FIELDS:
+            assert fieldname in result
+
+    def test_clevercsv(self):
+        """
+        Checks either that the `clevercsv` module is unavailable, or if it
+        is available, it has been used to compute the CSV dialect heuristic
+        (by checking that its specific dialect format, provided by the
+        "simple_dialect" key in the returned dictionary, is defined).
+        """
+
+        try:
+            import clevercsv
+        except ImportError or ModuleNotFoundError:
+            assert True
+            return
+
+        result = comma.extras.detect_csv_type(sample=self.SOME_STRING)
+
+        # make sure "simple_dialect" is not None
+        assert result.get("simple_dialect") is not None
+
+
 class TestIsBinaryString:
 
     class BogusClass:
