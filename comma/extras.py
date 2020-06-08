@@ -126,7 +126,7 @@ _null2 = _null * 2
 _null3 = _null * 3
 
 
-def _detect_encoding_by_bom(data, default=None):
+def _detect_encoding_by_bom(sample, default=None):
     """
     :rtype: str
     """
@@ -135,7 +135,7 @@ def _detect_encoding_by_bom(data, default=None):
     # easy as counting the nulls and from their location and count
     # determine the encoding. Also detect a BOM, if present.
 
-    sample = data[:4]
+    sample = sample[:4]
 
     if sample in (codecs.BOM_UTF32_LE, codecs.BOM_UTF32_BE):
         return 'utf-32'     # BOM included
@@ -187,7 +187,7 @@ try:
         
         return default
     
-except ImportError:
+except ImportError:  # pragma: no cover
     chardet = None
 
 
