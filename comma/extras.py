@@ -21,12 +21,47 @@ __all__ = [
 
 # Better CSV dialect detection, thanks to clevercsv
 
-detect_csv_type = None
+# define a helper based on the standard CSV package
+def _default_detect_csv_type(sample, delimiters=None):
+    """
+    Returns a dictionary containing meta-data on a CSV file, such as
+    the format "dialect", whether the file is likely to have a header
+    and the kind of line terminator that has been detected. This
+    version of the helper method is based on Python internal's `csv`
+    module.
+    """
+
+    sniffer = csv.Sniffer()
+    truncated_sample = sample[:comma.helpers.MAX_SAMPLE_CHUNKSIZE]
+
+    line_terminator = comma.helpers.detect_line_terminator(truncated_sample)
+
+    dialect = sniffer.sniff(sample=truncated_sample, delimiters=delimiters)
+    dialect.lineterminator = line_terminator
+
+    return {
+        "dialect": dialect,
+        "simple_dialect": None,
+        "has_header": sniffer.has_header(sample=truncated_sample),
+        "line_terminator": line_terminator,
+    }
+
+
+detect_csv_type = _default_detect_csv_type
 
 try:
     import clevercsv
     
     def detect_csv_type(sample, delimiters=None):
+        """
+        Returns a dictionary containing meta-data on a CSV file, such as
+        the format "dialect", whether the file is likely to have a header
+        and the kind of line terminator that has been detected. This
+        version of the helper method is based on the excellent/essential
+        Python package `clevercsv` by Gertjan van den Burg (@GjjvdBurg),
+        see https://github.com/alan-turing-institute/CleverCSV.
+        """
+
         sniffer = clevercsv.Sniffer()
         truncated_sample = sample[:comma.helpers.MAX_SAMPLE_CHUNKSIZE]
         simple_dialect = sniffer.detect(sample=truncated_sample, delimiters=delimiters)
@@ -42,29 +77,11 @@ try:
             "line_terminator": line_terminator,
         }
 
-except ImportError:
+except ImportError:  # pragma: no cover
     clevercsv = None
-    
-    # define a helper based on the standard CSV package
-    def detect_csv_type(sample, delimiters=None):
-        sniffer = csv.Sniffer()
-        truncated_sample = sample[:comma.helpers.MAX_SAMPLE_CHUNKSIZE]
-
-        line_terminator = comma.helpers.detect_line_terminator(truncated_sample)
-
-        dialect = sniffer.sniff(sample=truncated_sample, delimiters=delimiters)
-        dialect.lineterminator = line_terminator
-
-        return {
-            "dialect": dialect,
-            "simple_dialect": None,
-            "has_header": sniffer.has_header(sample=truncated_sample),
-            "line_terminator": line_terminator,
-        }
 
 
 # Better detection of binary data (i.e., zipped files), thanks to binaryornot
-
 
 # In case the package is not available: Define our own helper method
 # Based on file(1), see https://stackoverflow.com/a/7392391/408734
