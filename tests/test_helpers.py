@@ -188,22 +188,24 @@ class TestOpenStream:
             check_closeable: typing.Optional[bool] = True
     ) -> typing.NoReturn:
         # check input is not None
-        assert stream is not None
+        assert stream is not None, "provided `stream` is None"
 
         # check input is a stream
-        assert hasattr(stream, "seekable")
+        assert hasattr(stream, "seekable"), \
+            "provided `stream` does not appear file-like"
 
         # check_seekable
         if check_seekable is not None:
-            assert stream.seekable() == check_seekable
+            assert stream.seekable() == check_seekable, \
+                "value of stream.seekable() is not as expected"
 
         # check_position
         if check_position is not None:
             if hasattr(stream, "tell"):
-                assert stream.tell() == check_position
+                assert stream.tell() == check_position, "position not as expected"
             elif hasattr(stream, "seek"):
                 # stream.seek(0, 1) is an alternate to stream.tell()
-                assert stream.seek(0, 1) == check_position
+                assert stream.seek(0, 1) == check_position, "position not as expected"
 
         # reset_position
         if reset_position is not None and reset_position:
@@ -217,14 +219,14 @@ class TestOpenStream:
         # check_content
         if check_content is not None and check_content:
             content = stream.read()
-            assert content == check_content
+            assert content == check_content, "stream content is not as expected"
 
         # check_closeable
         if check_closeable is not None and check_closeable:
             assert hasattr(stream, "closed") and not stream.closed
             assert hasattr(stream, "close")
             stream.close()
-            assert stream.closed
+            assert stream.closed, "cannot close stream"
 
     def test_none_source(self):
         casted_none = typing.cast(
