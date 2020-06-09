@@ -246,12 +246,11 @@ class TestOpenStream:
         # the resulting stream should be normalized, despite the windows newline
         TestOpenStream.check_stream(stream=result, check_content=self.SOME_DATA)
 
-    # FIXME: apparently open is not patched properly
-    # def test_file_open(self, mocker):
-    #     mocker.patch("comma.helpers.is_local", return_value="file.csv")
-    #     mocker.patch("comma.helpers.open", return_value=io.BytesIO(b"aaa\0"))
-    #     result = comma.helpers.open_stream(source="file.csv")
-    #     TestOpenStream.check_stream(stream=result, check_content=b"aaa\0")
+    def test_file_open(self, mocker):
+        mocker.patch("comma.helpers.is_local", return_value="file.csv")
+        mocker.patch("comma.helpers.open", return_value=io.BytesIO(b"aaa\0"))
+        result = comma.helpers.open_stream(source="file.csv")
+        TestOpenStream.check_stream(stream=result, reset_position=True, check_content="aaa\0")
 
 
 class TestDetectLineTerminator:
