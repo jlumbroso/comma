@@ -1,5 +1,6 @@
 
 import io
+import itertools
 import os
 import typing
 
@@ -178,7 +179,19 @@ class TestIsUrl:
 
 class TestOpenStream:
 
+    SOME_URL = "https://somesite.io/file.csv"
+
     SOME_DATA = "col1,col2,col3\n,'row1',1,2\n'row2',5,6\n"
+
+    SOME_UTF8_ENCODED_STRING = (
+        b"\xe5\xb7\x9d\xe6\x9c\x88\xe6\x9c\xa8\xe5\xbf\x83\xe7"
+        b"\x81\xab\xe5\xb7\xa6\xe5\x8c\x97\xe4\xbb\x8a\xe5\x90"
+        b"\x8d\xe7\xbe\x8e\xe8\xa6\x8b\xe5\xa4\x96\xe6\x88\x90"
+        b"\xe7\xa9\xba\xe6\x98\x8e\xe9\x9d\x99\xe6\xb5\xb7\xe9"
+        b"\x9b\xb2\xe6\x96\xb0\xe8\xaa\x9e\xe9\x81\x93\xe8\x81"
+        b"\x9e\xe5\xbc\xb7\xe9\xa3\x9b")  # also the Kanji string
+
+    SOME_UTF8_DECODED_STRING = SOME_UTF8_ENCODED_STRING.decode("utf-8")
 
     @staticmethod
     def check_stream(
@@ -250,7 +263,103 @@ class TestOpenStream:
         mocker.patch("comma.helpers.is_local", return_value="file.csv")
         mocker.patch("comma.helpers.open", return_value=io.BytesIO(b"aaa\0"))
         result = comma.helpers.open_stream(source="file.csv")
+        comma.helpers.open.assert_called_with("file.csv", mode="rb")
         TestOpenStream.check_stream(stream=result, reset_position=True, check_content="aaa\0")
+
+    def test_byte_data_input(self):
+        result = comma.helpers.open_stream(source=self.SOME_UTF8_ENCODED_STRING)
+        TestOpenStream.check_stream(stream=result, check_content=self.SOME_UTF8_DECODED_STRING)
+
+    def test_unseekable_string_stream(self, mocker):
+        # setup the mock source
+        source = mocker.Mock(
+            seekable=mocker.Mock(return_value=False),
+            read=mocker.Mock(return_value=self.SOME_DATA))
+        # check source
+        result = comma.helpers.open_stream(source=source)
+        TestOpenStream.check_stream(stream=result, check_content=self.SOME_DATA)
+
+    def test_unseekable_byte_stream(self, mocker):
+        # setup the mock source
+        source = mocker.Mock(
+            seekable=mocker.Mock(return_value=False),
+            read=mocker.Mock(return_value=self.SOME_UTF8_ENCODED_STRING))
+        # check source
+        result = comma.helpers.open_stream(source=source)
+        TestOpenStream.check_stream(stream=result, check_content=self.SOME_UTF8_DECODED_STRING)
+
+    def test_is_bad_url(self, mocker, requests_mock):
+        mocker.patch("comma.helpers.is_url", return_value=True)
+        requests_mock.get(
+            url=self.SOME_URL,
+            status_code=404)
+        result = comma.helpers.open_stream(source=self.SOME_URL, no_request=False)
+        assert result is None
+
+    def test_is_url_text(self, mocker, requests_mock):
+        mocker.patch("comma.helpers.is_url", return_value=True)
+        requests_mock.get(
+            url=self.SOME_URL,
+            content=self.SOME_DATA.encode("ascii"),
+            headers={"Content-Type": "text/html; charset=ascii"})
+        result = comma.helpers.open_stream(source=self.SOME_URL, no_request=False)
+        TestOpenStream.check_stream(stream=result, check_content=self.SOME_DATA)
+
+    def test_is_url_bytes(self, mocker, requests_mock):
+        mocker.patch("comma.helpers.is_url", return_value=True)
+        requests_mock.get(
+            url=self.SOME_URL,
+            content=self.SOME_UTF8_ENCODED_STRING)
+        result = comma.helpers.open_stream(source=self.SOME_URL, no_request=False)
+        TestOpenStream.check_stream(stream=result, check_content=self.SOME_UTF8_DECODED_STRING)
+
+    def test_none_string(self, mocker):
+        mocker.patch("comma.helpers.is_local", return_value=None)
+        mocker.patch("comma.helpers.is_url", return_value=False)
+        result = comma.helpers.open_stream(source=self.SOME_URL, no_request=True)
+        assert result is None
+
+    def test_bad_input(self):
+        casted_bad_input = typing.cast(comma.helpers.SourceType, list())
+        result = comma.helpers.open_stream(source=casted_bad_input, no_request=True)
+        assert result is None
+
+    def aux_test_zipfile(self, mocker, csv_file_count, txt_file_count):
+        # build list of filenames
+        filenames = list(itertools.chain(
+            map("file{}.csv".format, range(csv_file_count)),
+            map("file{}.txt".format, range(txt_file_count))
+        ))
+        mocker.patch("zipfile.is_zipfile", return_value=True)
+        mocker.patch("zipfile.ZipFile", return_value=mocker.Mock(
+            namelist=mocker.Mock(return_value=filenames),
+            read=mocker.Mock(return_value=self.SOME_UTF8_ENCODED_STRING)))
+        result = comma.helpers.open_stream(source=io.StringIO(), no_request=False)
+        return result
+
+    def test_zipfile_one(self, mocker):
+        result = self.aux_test_zipfile(mocker=mocker, csv_file_count=1, txt_file_count=0)
+        TestOpenStream.check_stream(stream=result, check_content=self.SOME_UTF8_DECODED_STRING)
+
+    def test_zipfile_one_no_csv(self, mocker):
+        result = self.aux_test_zipfile(mocker=mocker, csv_file_count=0, txt_file_count=1)
+        TestOpenStream.check_stream(stream=result, check_content=self.SOME_UTF8_DECODED_STRING)
+
+    def test_zipfile_two(self, mocker):
+        result = self.aux_test_zipfile(mocker=mocker, csv_file_count=1, txt_file_count=1)
+        TestOpenStream.check_stream(stream=result, check_content=self.SOME_UTF8_DECODED_STRING)
+
+    def test_zipfile_more(self, mocker):
+        result = self.aux_test_zipfile(mocker=mocker, csv_file_count=1, txt_file_count=10)
+        TestOpenStream.check_stream(stream=result, check_content=self.SOME_UTF8_DECODED_STRING)
+
+    def test_zipfile_conflict(self, mocker):
+        with pytest.raises(ValueError):
+            self.aux_test_zipfile(mocker=mocker, csv_file_count=2, txt_file_count=1)
+
+    def test_zipfile_no_files(self, mocker):
+        with pytest.raises(ValueError):
+            self.aux_test_zipfile(mocker=mocker, csv_file_count=0, txt_file_count=0)
 
 
 class TestDetectLineTerminator:

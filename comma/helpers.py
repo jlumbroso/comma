@@ -313,7 +313,7 @@ def open_stream(
                 encoding = response.encoding
             
             if encoding is not None:
-                source = io.TextIOWrapper(response.content, encoding=encoding)
+                source = io.StringIO(response.text)
             else:
                 source = io.BytesIO(response.content)
         
@@ -386,6 +386,7 @@ def open_stream(
     # look at a sample and analyze
     source.seek(0)
     sample = source.read(MAX_SAMPLE_CHUNKSIZE)
+    source.seek(0)   # fixed this bug with tests! :-)
     
     # detect encoding if bytestring
     if type(sample) is bytes:
@@ -420,18 +421,20 @@ def multislice_sequence(
     return new_sequence
 
 
-def comment_stripper(stream: typing.TextIO, comment_line_chars: str = '#;'):
-    for line in stream.readlines():
-        
-        stripped_line = line.strip()
-        if not stripped_line:
-            # empty lines
-            continue
-
-        # look at first character
-        if stripped_line[:1] in comment_line_chars:
-            # lines that are commented out
-            continue
-
-        # yield line
-        yield line
+# NOTE: Have not decided whether to use this or not yet
+#
+# def comment_stripper(stream: typing.TextIO, comment_line_chars: str = '#;'):
+#     for line in stream.readlines():
+#
+#         stripped_line = line.strip()
+#         if not stripped_line:
+#             # empty lines
+#             continue
+#
+#         # look at first character
+#         if stripped_line[:1] in comment_line_chars:
+#             # lines that are commented out
+#             continue
+#
+#         # yield line
+#         yield line
