@@ -42,6 +42,7 @@ def load(
     # create CommaFile object
     parent_comma_file = comma.classes.file.CommaFile(
         header=csv_header,
+        params=csv_comma_info["params"],
     )
 
     def _make_comma_row(csv_row_data):

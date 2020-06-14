@@ -1,6 +1,8 @@
-import collections
+
+import typing
 
 import comma.exceptions
+import comma.typing
 
 
 __author__ = "Jérémie Lumbroso <lumbroso@cs.princeton.edu>"
@@ -17,12 +19,21 @@ class CommaFile(object):
     # Internal instance variable containing header
     _header = None
 
+    # Internal instance variable with params
+    _params = None
+
     # "Primary key" through which to access the records
     _primary_key = None
 
-    def __init__(self, header=None, primary_key=None):
+    def __init__(
+            self,
+            header=None,
+            params: comma.typing.CommaInfoParams = None,
+            primary_key: typing.Optional[str] = None
+    ):
         self._header = header
-        self._primary_key = None
+        self._params = params
+        self._primary_key = primary_key
 
     @property
     def header(self):
