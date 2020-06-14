@@ -55,3 +55,23 @@ def test_import_comma_classes_row():
     import comma.classes.row
     return True
 
+def test_import_comma_classes_table():
+    """
+    Testing that comma.classes.rows can be imported.
+    """
+    import comma.classes.table
+    return True
+
+def test_import_comma_classes_file():
+    """
+    Testing that comma.classes.rows can be imported.
+    """
+    import comma.classes.file
+    return True
+
+def test_import_comma_classes_slices():
+    """
+    Testing that comma.classes.rows can be imported.
+    """
+    import comma.classes.slices
+    return True
