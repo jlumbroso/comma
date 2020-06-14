@@ -65,7 +65,7 @@ CommaInfo = typing.TypedDict(
         "sample": str,
 
         # an identifier for the source (if not raw buffer)
-        "source": str,
+        "source_name": str,
 
         # CSV parameters
         "header": typing.Optional[typing.List[str]],

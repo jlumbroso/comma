@@ -230,7 +230,7 @@ def detect_line_terminator(
 def open_stream(
     source: comma.typing.SourceType,
     encoding: str = None,
-    no_request: bool = False
+    no_request: bool = False,
 ) -> typing.Optional[typing.TextIO]:
     """
     Returns a seekable stream for text data that is properly decoded
@@ -369,6 +369,89 @@ def open_stream(
             pass
     
     return source
+
+
+def open_csv(
+        source: comma.typing.SourceType,
+        encoding: str = None,
+        delimiters: typing.Optional[typing.Iterable[str]] = None,
+        no_request: bool = False,
+) -> comma.typing.CommaInfo:
+    """
+    Returns a `CommaInfo` typed dictionary containing the data and
+    metadata related to a CSV file. The `source` can be actual data,
+    a local file path, or a URL; it is possible to provide a stream
+    that is compressed using ZIP.
+
+    The `source` is opened using the `comma.helpers.open_stream()`
+    helper method. The metadata data is detected using internal
+    helpers and either the `csv` or `clevercsv` dialect sniffers.
+    """
+
+    stream = comma.helpers.open_stream(
+        source=source,
+        encoding=encoding,
+        no_request=no_request,
+    )
+    if stream is None:
+        return
+
+    # close at end if a stream was opened by this method (but not if
+    # a stream was provided to this method)
+    try:
+        close_at_end = (
+                not hasattr(source, "seekable") or
+                source.buffer.name != stream.buffer.name)
+    except AttributeError:
+        close_at_end = True
+
+    # streams returned by open_stream should be seekable
+    # FIXME: handle non-seekable streams
+    assert(hasattr(stream, "seekable"))
+
+    # get a sample and analyze
+    stream.seek(0)
+    csv_sample = stream.read(comma.helpers.MAX_SAMPLE_CHUNKSIZE)
+    stream.seek(0)
+
+    csv_params = comma.extras.detect_csv_type(
+        sample=csv_sample,
+        delimiters=delimiters)
+
+    reader = csv.reader(stream, dialect=csv_params["dialect"])
+    csv_rows = [row for row in reader]
+
+    # close if necessary
+    if close_at_end:
+        stream.close()
+
+    data = {
+        "rows": csv_rows,
+        "params": csv_params,
+        "sample": csv_sample,
+        "header": None,
+    }
+
+    # isolate the headers if they exist
+    if data["params"].get("has_header", False):
+
+        if len(csv_rows) == 0:
+            data["params"]["has_header"] = False
+            data["column_count"] = 0
+
+        else:
+            data["header"] = csv_rows[0]
+            data["rows"] = csv_rows[1:]
+            data["column_count"] = len(data["header"])
+
+    if len(csv_rows) > 0 and "column_count" not in data:
+        data["column_count"] = max(map(len, csv_rows))
+
+    # store the source location if it was a string
+    if comma.helpers.is_anystr(source):
+        data["source"] = source
+
+    return data
 
 
 def multislice_sequence(
