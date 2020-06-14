@@ -14,6 +14,7 @@ except ImportError:  # pragma: no cover
     requests = None
 
 import comma.extras
+import comma.typing
 
 
 __author__ = "Jérémie Lumbroso <lumbroso@cs.princeton.edu>"
@@ -24,8 +25,6 @@ __all__ = [
     "URI_SCHEMES_ACCEPTED",
     "LINE_TERMINATORS",
     "LINE_TERMINATOR_DEFAULT",
-
-    "SourceType",
 
     "is_local",
     "is_url",
@@ -45,38 +44,6 @@ URI_SCHEMES_ACCEPTED = ["http", "https"]
 LINE_TERMINATORS = ["\r\n", "\r", "\n"]
 
 LINE_TERMINATOR_DEFAULT = "\n"
-
-
-# our type hint for a data source:
-#  - a location (URL or file path), or string data
-#  - a stream (text or binary)
-#  - a string of bytes
-
-SourceType = typing.Union[typing.AnyStr, typing.IO, bytes]
-
-# type definitions for helper dictionaries
-# (commented out for the moment because only Python 3.8+ compatible)
-
-# class CommaInfoParams(typing.TypedDict):
-#     dialect:         typing.Any
-#     simple_dialect:  typing.Any
-#     has_header:      bool
-#     line_terminator: str
-#
-# class CommaInfo(typing.TypedDict):
-#
-#     # the parsed CSV rows
-#     rows:   typing.List[typing.List[str]]
-#
-#     # a raw sample of the original file
-#     sample: str
-#
-#     # an identifier for the source (if not raw buffer)
-#     source: str
-#
-#     # CSV parameters
-#     header: typing.Optional[typing.List[str]]
-#     params: CommaInfoParams
 
 
 def is_anystr(obj: typing.Union[typing.Any, typing.AnyStr]) -> bool:
@@ -261,7 +228,7 @@ def detect_line_terminator(
 
 
 def open_stream(
-    source: SourceType,
+    source: comma.typing.SourceType,
     encoding: str = None,
     no_request: bool = False
 ) -> typing.Optional[typing.TextIO]:
