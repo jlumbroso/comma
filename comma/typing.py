@@ -3,6 +3,19 @@ import csv
 import typing
 
 
+__author__ = "Jérémie Lumbroso <lumbroso@cs.princeton.edu>"
+
+__all__ = [
+    "SourceType",
+
+    "DialectType",
+    "SimpleDialectType",
+
+    "CommaInfo",
+    "CommaInfoParams"
+]
+
+
 # Our type hint for a data source:
 #  - a location (URL or file path), or string data
 #  - a stream (text or binary)
