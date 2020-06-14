@@ -24,6 +24,43 @@ class CommaTable(collections.UserList, list, collections.UserDict):
         ret = super().__init__(initlist, *args, **kwargs)
         return ret
 
+    def to_html(self):
+        """
+        Returns an HTML string representation of the table data.
+        """
+
+        # contain all the rows
+        table_rows = []
+
+        def _zip_html_tag(data, in_pattern="<td style='text-align: left;'>{}</td>", out_pattern="<tr>{}</tr>", indent=0):
+
+            if type(indent) is not int:
+                indent = 0
+
+            linebreak = "\n" + (indent * " ")
+
+            inner_html = linebreak.join(map(in_pattern.format, data))
+            outer_html = out_pattern.format(inner_html)
+
+            return outer_html
+
+        if self.header is not None:
+            table_rows = [_zip_html_tag(data=self.header, in_pattern="<th>{}</th>")]
+
+        for row in self.data:
+            table_rows += [_zip_html_tag(data=row)]
+
+        table_html = "<table style='text-align: left;'>{}</table>".format("\n\n".join(table_rows))
+
+        return table_html
+
+    def _repr_html_(self):
+        """
+        Returns an HTML string representation of the table data, this is a magic
+        helper method for IPython/Jupyter notebooks.
+        """
+        return self.to_html()
+
     @property
     def header(self):
         """
@@ -40,9 +77,20 @@ class CommaTable(collections.UserList, list, collections.UserDict):
         return self._parent.header
 
     def __getitem__(self, key):
-        # FIXME: figure out how to make slices have headers
-        if type(key) is int or type(key) is slice:
+        print("CommaTable.__getitem__", hex(id(self)), key, type(key))
+
+        # if getting a specific row: Return underlying CommaRow
+        if type(key) is int:
             return super().__getitem__(key)
+
+        # if getting a range of rows: Create a new CommaTable to
+        # serve the subset of rows; since the rows will be the
+        # same references, any changes will propagate to the whole
+        # file (unlike when creating a slice, which usually creates
+        # a copy)
+
+        if type(key) is slice:
+            return self.clone(newdata=self.data[key])
 
         # field-slice, i.e. csv_table["street"]
         if type(key) is str:
