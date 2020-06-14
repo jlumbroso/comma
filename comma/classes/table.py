@@ -1,5 +1,6 @@
 import collections
 
+import comma.abstract
 import comma.exceptions
 import comma.classes.slices
 
@@ -11,7 +12,7 @@ __all__ = [
 ]
 
 
-class CommaTable(collections.UserList, list, collections.UserDict):
+class CommaTable(collections.UserList, list, collections.UserDict, comma.abstract.CloneableCollection):
     """
     Contains a table from a CSV file.
     """
@@ -28,6 +29,8 @@ class CommaTable(collections.UserList, list, collections.UserDict):
         """
         Returns an HTML string representation of the table data.
         """
+
+        # NOTE: should we use tabulator or prettytable instead of reinventing?
 
         # contain all the rows
         table_rows = []

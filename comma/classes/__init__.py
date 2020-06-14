@@ -1,4 +1,3 @@
-import collections
 
 from comma.classes.file import CommaFile
 from comma.classes.table import CommaTable

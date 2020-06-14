@@ -26,6 +26,9 @@ class CommaFile(object):
 
     @property
     def header(self):
+        """
+
+        """
         return self._header
 
     @header.setter
@@ -34,6 +37,9 @@ class CommaFile(object):
 
     @property
     def primary_key(self):
+        """
+
+        """
         return self._primary_key
 
     @primary_key.setter
