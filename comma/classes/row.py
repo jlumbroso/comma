@@ -1,6 +1,7 @@
 import collections
 
 import comma.exceptions
+import comma.helpers
 
 
 __author__ = "Jérémie Lumbroso <lumbroso@cs.princeton.edu>"

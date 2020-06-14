@@ -1,6 +1,7 @@
 import collections
 
 import comma.exceptions
+import comma.classes.slices
 
 
 __author__ = "Jérémie Lumbroso <lumbroso@cs.princeton.edu>"
@@ -45,7 +46,7 @@ class CommaTable(collections.UserList, list, collections.UserDict):
 
         # field-slice, i.e. csv_table["street"]
         if type(key) is str:
-            return CommaFieldSlice(
+            return comma.classes.slices.CommaFieldSlice(
                 initlist=self,
                 parent=self._parent,
                 field_name=key)
