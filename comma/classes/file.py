@@ -14,9 +14,12 @@ class CommaFile(object):
     """
     """
 
-    def __init__(self):
-        pass
+    # internal instance variable containing header
+    _header = None
+
+    def __init__(self, header=None):
+        self._header = header
 
     @property
     def header(self):
-        pass
+        return self._header
