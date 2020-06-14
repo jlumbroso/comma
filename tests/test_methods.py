@@ -1,5 +1,8 @@
 
+import io
 import typing
+
+import pytest
 
 import comma
 
@@ -17,9 +20,11 @@ class TestLoad:
         obj = comma.load(source=casted_none)
         assert obj is None
 
-    def test_load_from_string(self):
+    @pytest.mark.parametrize("source", [SOME_CSV_STRING,
+                                        io.StringIO(SOME_CSV_STRING)])
+    def test_load_from_string_or_stringio(self, source):
 
-        obj = comma.load(SOME_CSV_STRING)
+        obj = comma.load(source)
 
         # make sure we know what we are getting
         assert (len(obj) == SOME_CSV_STRING_ROW_COUNT)
