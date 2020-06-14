@@ -60,6 +60,9 @@ class CommaFile(object):
             # we don't really care why the headers couldn't be converted
             # to string
 
+            # Thanks @pylover!
+            # See: https://gist.github.com/pylover/7870c235867cf22817ac5b096defb768
+
             # noinspection PyBroadException
             try:
                 header_string = self.header.__repr__()
