@@ -19,6 +19,9 @@ __all__ = [
 ]
 
 
+DEFAULT_DELIMITER = u","
+
+
 # Better CSV dialect detection, thanks to clevercsv
 
 # define a helper based on the standard CSV package
@@ -34,15 +37,22 @@ def _default_detect_csv_type(sample, delimiters=None):
     sniffer = csv.Sniffer()
     truncated_sample = sample[:comma.helpers.MAX_SAMPLE_CHUNKSIZE]
 
+    # better line terminator detection
     line_terminator = comma.helpers.detect_line_terminator(truncated_sample)
 
-    dialect = sniffer.sniff(sample=truncated_sample, delimiters=delimiters)
-    dialect.lineterminator = line_terminator
+    try:
+        dialect = sniffer.sniff(sample=truncated_sample, delimiters=delimiters)
+        dialect.lineterminator = line_terminator
+
+        has_header = sniffer.has_header(sample=truncated_sample)
+    except csv.Error:
+        dialect = None
+        has_header = False
 
     return {
         "dialect": dialect,
         "simple_dialect": None,
-        "has_header": sniffer.has_header(sample=truncated_sample),
+        "has_header": has_header,
         "line_terminator": line_terminator,
     }
 
@@ -70,10 +80,21 @@ try:
         dialect = simple_dialect.to_csv_dialect()
         dialect.lineterminator = line_terminator
 
+        has_header = False
+        try:
+            has_header = sniffer.has_header(sample=truncated_sample)
+        except StopIteration:
+            # can happen with empty data
+            pass
+
+        # also a fix for empty streams
+        if dialect.delimiter is None or dialect.delimiter == "":
+            dialect.delimiter = DEFAULT_DELIMITER
+
         return {
             "dialect": dialect,
             "simple_dialect": simple_dialect,
-            "has_header": sniffer.has_header(sample=truncated_sample),
+            "has_header": has_header,
             "line_terminator": line_terminator,
         }
 

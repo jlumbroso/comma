@@ -1,9 +1,7 @@
-import codecs
-import collections
+
 import csv
 import io
 import os
-import pathlib
 import typing
 import urllib, urllib.parse
 import zipfile

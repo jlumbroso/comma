@@ -415,6 +415,98 @@ class TestDetectLineTerminator:
             default=self.OTHER_DEFAULT) == self.UNIX_NEWLINE
 
 
+class TestOpenCSV:
+
+    NO_DATA_STRING = ""
+    NO_DATA_LIST = list()
+
+    SOME_FILENAME = "some_filename.csv"
+
+    SOME_DATA_NO_HEADER = ("Person1,45,blue\n"
+                           "Person2,82,green\n"
+                           "Person3,17,brown\n"
+                           "Person4,27,brown\n")
+
+    SOME_DATA_WITH_HEADER = ("name,age,eye_color\n" + SOME_DATA_NO_HEADER)
+
+    def test_none_source(self):
+        """
+        Checks whether the `comma.helpers.open_csv()` gracefully handles the
+        case where the provided `source` is a `None` object.
+        """
+        # (purposefully) invalid cast
+        casted_none = typing.cast(comma.typing.SourceType, None)
+        assert comma.helpers.open_csv(source=casted_none) is None
+
+    def test_none_stream(self, mocker):
+        """
+        Checks whether the `comma.helpers.open_csv()` gracefully handles the
+        case where `comma.helpers.open_stream()` returns a `None` object. 
+        """
+        mocker.patch("comma.helpers.open_stream", return_value=None)
+        assert comma.helpers.open_csv(source=self.SOME_FILENAME) is None
+
+    def test_some_data_no_header(self):
+        ret = comma.helpers.open_csv(source=self.SOME_DATA_NO_HEADER)
+        assert ret is not None
+        assert "params" in ret and "has_header" in ret.get("params")
+        assert not ret["params"]["has_header"]
+
+    def test_some_data_with_header(self):
+        ret = comma.helpers.open_csv(source=self.SOME_DATA_WITH_HEADER)
+        assert ret is not None
+        assert "params" in ret and "has_header" in ret.get("params")
+        assert ret["params"]["has_header"]
+
+    def test_misdetected_no_headers(self, mocker):
+        """
+        Checks whether the `comma.helpers.open_csv()` is able to detect when
+        headers are missing.
+        """
+        no_data_stream = io.StringIO(self.NO_DATA_STRING)
+
+        mocker.patch("comma.helpers.open_stream", return_value=no_data_stream)
+        mocker.patch("csv.reader", return_value=self.NO_DATA_LIST)
+        mocker.patch("comma.extras.detect_csv_type", return_value={
+            "dialect": None,  # ignored
+            "simple_dialect": None,  # ignored
+            "has_header": True,  # <-- important because trying to trick method
+            "line_terminator": "\n",  # not important
+        })
+
+        ret = comma.helpers.open_csv(source=self.SOME_FILENAME)
+
+        assert ret is not None
+        assert "params" in ret and "has_header" in ret.get("params")
+        assert not ret["params"]["has_header"]
+
+    def test_close_at_end(self, mocker):
+        """
+        Checks whether internally created streams are closed.
+        """
+        byte_stream = io.BytesIO(self.SOME_DATA_WITH_HEADER.encode("utf-8"))
+        try:
+            byte_stream.buffer.name = "some binary stream"
+        except AttributeError:
+            pass
+
+        string_stream = io.StringIO(self.SOME_DATA_WITH_HEADER)
+        try:
+            string_stream.buffer.name = "some string stream"
+        except AttributeError:
+            pass
+        mocker.patch("comma.helpers.open_stream", return_value=string_stream)
+
+        comma.helpers.open_csv(source=byte_stream)
+
+        # original stream should not be closed
+        assert not byte_stream.closed
+
+        # internally produced stream ("created" by `comma.helpers.open_stream()`)
+        # should be closed
+        assert string_stream.closed
+
+
 class TestMultisliceSequence:
     """
     Tests for the `comma.helpers.multislice_sequence()` helper method, which

@@ -7,6 +7,8 @@ import pytest
 
 class TestDetectCsvType:
 
+    SOME_EMPTY_STRING = ""
+
     SOME_STRING = "0,1,2\n"
 
     # fields expected in the dictionary returned by this method
@@ -52,6 +54,16 @@ class TestDetectCsvType:
 
         # make sure "simple_dialect" is not None
         assert result.get("simple_dialect") is not None
+
+    def test_empty(self):
+        result = comma.extras.detect_csv_type(sample=self.SOME_EMPTY_STRING)
+        assert result is not None
+        assert "has_header" in result and not result["has_header"]
+
+    def test_empty_default(self):
+        result = comma.extras._default_detect_csv_type(sample=self.SOME_EMPTY_STRING)
+        assert result is not None
+        assert "has_header" in result and not result["has_header"]
 
 
 class TestIsBinaryString:
