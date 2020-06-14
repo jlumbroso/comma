@@ -12,6 +12,7 @@ except ImportError:
     requests = None
 
 import comma.helpers
+import comma.typing
 
 
 EXPECTED_CONSTANTS = [
@@ -245,7 +246,7 @@ class TestOpenStream:
 
     def test_none_source(self):
         casted_none = typing.cast(
-            comma.helpers.SourceType, None)  # (purposefully) invalid cast
+            comma.typing.SourceType, None)  # (purposefully) invalid cast
         assert comma.helpers.open_stream(source=casted_none) is None
 
     def test_string_data_input(self):
@@ -320,7 +321,7 @@ class TestOpenStream:
         assert result is None
 
     def test_bad_input(self):
-        casted_bad_input = typing.cast(comma.helpers.SourceType, list())
+        casted_bad_input = typing.cast(comma.typing.SourceType, list())
         result = comma.helpers.open_stream(source=casted_bad_input, no_request=True)
         assert result is None
 

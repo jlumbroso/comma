@@ -32,6 +32,14 @@ def test_import_comma_helpers():
     return True
 
 
+def test_import_comma_typing():
+    """
+    Testing that comma.helpers can be imported.
+    """
+    import comma.typing
+    return True
+
+
 def test_import_comma_classes():
     """
     Testing that comma.classes can be imported.

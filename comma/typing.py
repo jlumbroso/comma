@@ -37,7 +37,7 @@ try:
     import clevercsv
     import clevercsv.dialect
     SimpleDialectType = clevercsv.dialect.SimpleDialect
-except ImportError:
+except ImportError:  # pragma: no cover
     clevercsv = None
 
 
