@@ -104,6 +104,10 @@ formulas](https://support.getgrist.com/formulas/).
 
 ## Acknowledgements
 
+Thanks to @zbanks for the name of the package! Thanks to @rfreling,
+@adamfinkelstein for discussing ideas before I got started on this. Thanks
+to @GjjvdBurg and collaborators for awesome, awesome contribution to
+text processing science and our Python community with `clevercsv`. 
 
 ## License
 
