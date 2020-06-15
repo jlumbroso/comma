@@ -2,6 +2,17 @@
 
 This library tries to make manipulating CSV files a great experience.
 
+## Installation
+
+If you use pip:
+```shell script
+pip install comma
+```
+or if you use pipenv:
+```shell script
+pipenv install comma
+```
+
 ## Why?
 
 Although Python, fortuitously, is
