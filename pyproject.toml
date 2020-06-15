@@ -1,8 +1,30 @@
 [tool.poetry]
 name = "comma"
-version = "0.1.0"
-description = ""
+version = "0.1.2"
+description = "Python CSV, and delimiter-spaced files, for humans!"
 authors = ["Jérémie Lumbroso <lumbroso@cs.princeton.edu>"]
+license = "LGPL-3.0-or-later"
+readme = "README.md"
+homepage = "https://github.com/jlumbroso/comma"
+repository = "https://github.com/jlumbroso/comma"
+include = [
+    "README.md"
+]
+keywords = [
+    "CSV",
+    "CSV library",
+    "CSV reading",
+    "DSV library",
+    "CSV manipulation",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Text Processing",
+    "Topic :: Text Processing :: General",
+]
 
 [tool.poetry.dependencies]
 python = "^3.8"
