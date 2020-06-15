@@ -12,8 +12,9 @@ patterns. This is what happened with the various `urllib` libraries,
 incredibly powerful, but limiting users by its complexity---it was
 not straightforward, for instance, to use cookies: One of several
 problems that [`requests`](https://github.com/psf/requests) by
-@ken-reitz addressed. Indeed, `requests` abstracts power beneath
-simplicity, smart defaults, and discoverability.
+[@ken-reitz](https://github.com/ken-reitz) addressed. Indeed,
+`requests` abstracts power beneath simplicity, smart defaults, and
+discoverability.
 
 For the CSV format, we are confronted with a similar situation. While
 both the JSON and YAML formats have packages that provide, one-command
@@ -104,10 +105,12 @@ formulas](https://support.getgrist.com/formulas/).
 
 ## Acknowledgements
 
-Thanks to @zbanks for the name of the package! Thanks to @rfreling,
-@adamfinkelstein for discussing ideas before I got started on this. Thanks
-to @GjjvdBurg and collaborators for awesome, awesome contribution to
-text processing science and our Python community with `clevercsv`. 
+Thanks to [@zbanks](https://github.com/zbanks) for the name of the package!
+Thanks to [@rfreling](https://github.com/rfreling),
+[@adamfinkelstein](https://github.com/adamfinkelstein) for discussing ideas
+before I got started on this. Thanks to [@GjjvdBurg](https://github.com/GjjvdBurg)
+and collaborators for awesome, awesome contribution to text processing science
+and our Python community with `clevercsv`. 
 
 ## License
 
