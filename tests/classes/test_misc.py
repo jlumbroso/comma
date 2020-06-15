@@ -16,10 +16,11 @@ def test_slicing_parent():
 
     # get reference to parent object
     assert obj._parent is not None
-    ref_id = hex(id(obj._parent))
+    ref_id = id(obj._parent)
 
     # check this is propagated to slices
-    assert (ref_id == hex(id(obj[0]._parent)))
-    assert (ref_id == hex(id(obj[0:10]._parent)))
-    assert (ref_id == hex(id(obj[0:10][0]._parent)))
+    # use hex(id(...)) to get an easier to read number
+    assert (ref_id == id(obj[0]._parent))
+    assert (ref_id == id(obj[0:10]._parent))
+    assert (ref_id == id(obj[0:10][0]._parent))
 

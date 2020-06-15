@@ -98,15 +98,19 @@ class CommaRow(collections.UserList, list, collections.UserDict):
         return key_index
 
     def __setitem__(self, key, value):
+        ##print("CommaRow.__setitem__", hex(id(self)), key, type(key), "<==", value, type(value))
+
         # FIXME: figure out how to make slices have headers
         key_index = self.__key_to_column_id(key)
         if type(key) is str and self._original != self:
-            print(type(key) is str and self._original != self)
+            ##print(type(key) is str and self._original != self)
             return self._original.__setitem__(key, value)
         ret = super().__setitem__(key_index, value)
         return ret
 
     def __getitem__(self, key):
+        ##print("CommaRow.__getitem__", hex(id(self)), key, type(key))
+
         # FIXME: figure out how to make slices have headers
         key_index = self.__key_to_column_id(key)
         ret = super().__getitem__(key_index)

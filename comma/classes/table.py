@@ -80,7 +80,7 @@ class CommaTable(collections.UserList, list, collections.UserDict, comma.abstrac
         return self._parent.header
 
     def __getitem__(self, key):
-        print("CommaTable.__getitem__", hex(id(self)), key, type(key))
+        ##print("CommaTable.__getitem__", hex(id(self)), key, type(key))
 
         # if getting a specific row: Return underlying CommaRow
         if type(key) is int:
@@ -103,6 +103,8 @@ class CommaTable(collections.UserList, list, collections.UserDict, comma.abstrac
                 field_name=key)
 
     def __setitem__(self, key, value):
+        ##print("CommaTable.__setitem__", hex(id(self)), key, type(key), "<==", value, type(value))
+
         # FIXME: figure out how to make slices have headers
         if type(key) is int or type(key) is slice:
             return super().__setitem__(key, value)

@@ -90,6 +90,8 @@ class CommaRowSlice(collections.UserList, list, collections.UserDict):
         return ret
 
     def __getitem__(self, key):
+        ##print("CommaRowSlice.__getitem__", hex(id(self)), key, type(key))
+
         if type(key) is int:
             ret_val = super().__getitem__(key)
             return ret_val[self._field_index]
@@ -103,6 +105,8 @@ class CommaRowSlice(collections.UserList, list, collections.UserDict):
                 field_name=self._field_name)
 
     def __setitem__(self, key, value):
+        ##print("CommaRowSlice.__setitem__", hex(id(self)), key, type(key), "<==", value, type(value))
+
         if type(key) is int:
             row = super().__getitem__(key)
             row[self._field_index] = value
