@@ -22,7 +22,7 @@ jobs:
         with:
           python_version: 3.8.0
           poetry_version: 1.0
-          working_directory: ./working_dir
+          working_directory: '.'
           args: run python -m pytest --cov=src --cov-branch --cov-fail-under=100 tests/
       - name: Push coverage report to coveralls.io
         uses: coverallsapp/github-action@master
