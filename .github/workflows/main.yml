@@ -1,10 +1,7 @@
 
 on: ["push", "pull_request"]
-
-name: Comma Continuous Integration
-
+name: pytest
 jobs:
-
   pytest:
     name: pytest
     runs-on: ubuntu-latest
