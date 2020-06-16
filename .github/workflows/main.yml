@@ -16,7 +16,7 @@ jobs:
           python_version: 3.8.0
           poetry_version: 1.0
           working_directory: "."  # optional, defaults to ".'
-          args: install -E "autodetect net"  # installing all extras
+          args: install -E "autodetect net"
       - name: Run pytest
         uses: abatilo/actions-poetry@v1.5.0
         with:
