@@ -5,6 +5,8 @@
 
 This library tries to make manipulating CSV files a great experience.
 
+![Example session](example-screenshot.png)
+
 ## Installation
 
 If you use pip:
