@@ -6,7 +6,7 @@ name: Comma Continuous Integration
 jobs:
 
   pytest:
-    name: Running `pytest`
+    name: Running pytest
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
@@ -23,7 +23,7 @@ jobs:
           python_version: 3.8.0
           poetry_version: 1.0
           working_directory: "."
-          args: run python -m pytest --cov=comma --cov-branch --cov-fail-under=100 tests/
+          args: run python -m pytest --cov=comma --cov-branch tests/
       - name: Push coverage report to coveralls.io
         uses: coverallsapp/github-action@master
         with:
