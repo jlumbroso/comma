@@ -6,7 +6,7 @@ name: Comma Continuous Integration
 jobs:
 
   pytest:
-    name: Running pytest
+    name: pytest
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master

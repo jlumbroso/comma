@@ -1,5 +1,8 @@
 # Comma: A Python CSV Library for Humans
 
+![pytest](https://github.com/jlumbroso/comma/workflows/pytest/badge.svg)
+ [![codecov](https://codecov.io/gh/jlumbroso/comma/branch/master/graph/badge.svg)](https://codecov.io/gh/jlumbroso/comma)
+
 This library tries to make manipulating CSV files a great experience.
 
 ## Installation
