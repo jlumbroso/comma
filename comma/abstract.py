@@ -27,7 +27,7 @@ class CloneableCollection(object):
         """
 
         if newdata is None:
-            return True
+            return False
 
         return True
 
@@ -58,15 +58,16 @@ class CloneableCollection(object):
 
         # Copy all attributes except obj.data (handled separately)
         for key, value in self.__dict__.items():
-            # kwargs can override existing attributes
-            if key in kwargs:
-                inst.__dict__ [key] = kwargs.get(key)
-
             # this is handled separately
             if key != "data":
                 inst.__dict__[key] = value
 
-        # Create a copy of the data and avoid triggering descriptors
-        inst.__dict__["data"] = newdata or copy.deepcopy(self.__dict__["data"])
+            # kwargs can override existing attributes
+            if key in kwargs:
+                inst.__dict__[key] = kwargs.get(key)
+
+
+        # Avoid triggering descriptors
+        inst.__dict__["data"] = newdata
 
         return inst
