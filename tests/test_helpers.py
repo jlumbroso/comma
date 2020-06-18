@@ -554,3 +554,17 @@ class TestMultisliceSequence:
             # remove last element of comparison list
             current = current[self.ALL_BUT_LAST_SLICE]
 
+
+class TestZipHtmlTag:
+
+    SOME_ITERABLE = [1]
+    SOME_INVALID_INDENT = "badindent"
+
+    def test_produces_string(self):
+        assert type(comma.helpers.zip_html_tag(data=self.SOME_ITERABLE)) is str
+
+    def test_bad_indentg(self):
+        assert type(comma.helpers.zip_html_tag(
+            data=self.SOME_ITERABLE,
+            indent=self.SOME_INVALID_INDENT
+        )) is str

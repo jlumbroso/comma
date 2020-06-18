@@ -1,9 +1,9 @@
 import collections
 
 import comma.abstract
-import comma.exceptions
 import comma.classes.slices
-
+import comma.exceptions
+import comma.helpers
 
 __author__ = "Jérémie Lumbroso <lumbroso@cs.princeton.edu>"
 
@@ -35,23 +35,11 @@ class CommaTable(collections.UserList, list, collections.UserDict, comma.abstrac
         # contain all the rows
         table_rows = []
 
-        def _zip_html_tag(data, in_pattern="<td style='text-align: left;'>{}</td>", out_pattern="<tr>{}</tr>", indent=0):
-
-            if type(indent) is not int:
-                indent = 0
-
-            linebreak = "\n" + (indent * " ")
-
-            inner_html = linebreak.join(map(in_pattern.format, data))
-            outer_html = out_pattern.format(inner_html)
-
-            return outer_html
-
-        if self.header is not None:
-            table_rows = [_zip_html_tag(data=self.header, in_pattern="<th>{}</th>")]
+        if self.has_header:
+            table_rows = [comma.helpers.zip_html_tag(data=self.header, in_pattern="<th>{}</th>")]
 
         for row in self.data:
-            table_rows += [_zip_html_tag(data=row)]
+            table_rows += [comma.helpers.zip_html_tag(data=row, indent=4)]
 
         table_html = "<table style='text-align: left;'>{}</table>".format("\n\n".join(table_rows))
 
@@ -63,6 +51,13 @@ class CommaTable(collections.UserList, list, collections.UserDict, comma.abstrac
         helper method for IPython/Jupyter notebooks.
         """
         return self.to_html()
+
+    @property
+    def has_header(self):
+        """
+
+        """
+        return not (self._parent is None) and not (self._parent.header is None)
 
     @property
     def header(self):

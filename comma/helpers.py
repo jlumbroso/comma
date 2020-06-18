@@ -28,8 +28,10 @@ __all__ = [
     "is_url",
     "detect_line_terminator",
     "open_stream",
+    "open_csv",
 
     "multislice_sequence",
+    "zip_html_tag",
 ]
 
 
@@ -467,6 +469,26 @@ def multislice_sequence(
             new_sequence = new_sequence.__getitem__(sl)
 
     return new_sequence
+
+
+def zip_html_tag(
+        data: typing.Iterable,
+        in_pattern: str = "<td style='text-align: left;'>{}</td>",
+        out_pattern: str = "<tr>{}</tr>",
+        indent: int = 0
+) -> str:
+    """
+
+    """
+    if type(indent) is not int:
+        indent = 0
+
+    linebreak = "\n" + (indent * " ")
+
+    inner_html = linebreak.join(map(in_pattern.format, data))
+    outer_html = out_pattern.format(inner_html)
+
+    return outer_html
 
 
 # NOTE: Have not decided whether to use this or not yet
