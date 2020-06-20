@@ -1,4 +1,5 @@
 import collections
+import typing
 
 import comma.exceptions
 import comma.helpers
@@ -27,7 +28,15 @@ class CommaRow(collections.UserList, list, collections.UserDict):
     # (optionally) original row reference
     _original = None
 
-    def __init__(self, initlist=None, parent=None, slice_list=None, original=None, *args, **kwargs):
+    def __init__(
+        self,
+        initlist=None,
+        parent: typing.Optional[object] = None,
+        slice_list=None,
+        original=None,
+        *args,
+        **kwargs
+    ):
         # initialize internal attributes
         self._parent = parent
         self._slice_list = slice_list if slice_list is not None else list()
