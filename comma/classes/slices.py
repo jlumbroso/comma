@@ -26,10 +26,41 @@ class CommaFieldSlice(list, collections.UserList):
 
         self._parent = parent
         self._field_name = field_name
-        self._field_index = self._parent.header.index(self._field_name)
 
-        ret = super().__init__(initlist, *args, **kwargs)
-        return ret
+        # obtain the _field_index corresponding to the name
+        self._recompute_field_index()
+
+        super().__init__(initlist, *args, **kwargs)
+
+    def _recompute_field_index(self):
+        """
+        Computes the value of `_field_index`, which is the index of the
+        `field_name` among the provided `header`. Raises exception if
+        there is no parent, or header, or the field name cannot be found
+        among the header.
+        """
+        if self._parent is None:
+            raise comma.exceptions.CommaOrphanRowException(
+                "cannot create a `CommaFieldSlice` for a row not linked "
+                "to a parent `CommaFile`"
+            )
+
+        if self._parent.header is None:
+            raise comma.exceptions.CommaNoHeaderException(
+                "cannot create a `CommaFieldSlice` for a row linked to a "
+                "`CommaFile` parent without a header"
+            )
+
+        try:
+            # FIXME: handle duplicate names (warning?)
+            self._field_index = self._parent.header.index(self._field_name)
+        except ValueError:
+            raise comma.exceptions.CommaKeyError(
+                "the field '{}' does not exist among the header: {}".format(
+                    self._field_name,
+                    self._parent.header,
+                )
+            )
 
     def __iter__(self):
         for row in super().__iter__():
