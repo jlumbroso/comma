@@ -22,6 +22,9 @@ class CommaFieldSlice(list, collections.UserList):
     # field name
     _field_name = None
 
+    # index of field name among _parent.header
+    _field_index = None
+
     def __init__(self, initlist=None, parent=None, field_name=None, *args, **kwargs):
 
         self._parent = parent
@@ -117,8 +120,7 @@ class CommaRowSlice(collections.UserList, list, collections.UserDict):
         self._parent = parent
         self._header_slice = header_slice
 
-        ret = super().__init__(initlist, *args, **kwargs)
-        return ret
+        super().__init__(initlist, *args, **kwargs)
 
     def __getitem__(self, key):
         ##print("CommaRowSlice.__getitem__", hex(id(self)), key, type(key))
