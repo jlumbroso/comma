@@ -111,8 +111,10 @@ TEXT_CHARS = bytearray({7,8,9,10,12,13,27} | set(range(0x20, 0x100)) - {0x7f})
 
 def _is_binary_string_internal(bytestring):
     try:
+        # PY 3 version
         return bool(bytestring.translate(None, TEXT_CHARS))
-    except TypeError:
+    except TypeError:  # pragma: no cover
+        # PY 2 version
         return bool(bytestring.translate(type(bytestring).maketrans("", "", TEXT_CHARS)))
 
 

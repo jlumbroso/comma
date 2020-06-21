@@ -5,6 +5,7 @@ import comma.helpers  # for comma.helpers.MAX_SAMPLE_CHUNKSIZE
 import pytest
 
 
+# noinspection PyProtectedMember
 class TestDetectCsvType:
 
     SOME_EMPTY_STRING = ""
@@ -66,6 +67,7 @@ class TestDetectCsvType:
         assert "has_header" in result and not result["has_header"]
 
 
+# noinspection PyProtectedMember
 class TestIsBinaryString:
 
     class BogusClass:
@@ -131,10 +133,12 @@ class TestIsBinaryString:
         # and wouldn't if the method had not been patched)
         assert comma.extras.is_binary_string(long_value, truncate=True)
 
+        # noinspection PyUnresolvedReferences
         comma.extras._is_binary_string.assert_called_once_with(
-            long_value[:max_size])  # pylint: disable=protected-access
+            long_value[:max_size])
 
 
+# noinspection PyProtectedMember
 class TestDetectEncoding:
 
     SOME_MADE_UP_ENCODING = "native-9"
@@ -195,6 +199,27 @@ class TestDetectEncoding:
             assert (guessed_encoding == comma.extras.detect_encoding(
                 sample=encoded_string,
                 default=None))
+
+    def test_detect_by_bom_failing(self):
+        """
+        Checks whether
+        """
+        # this is a made up BOM which happens to have 3 nulls (like the BOM for
+        # UTF-32); it was chosen to pass all tests of the BOM detection except
+        # the last one
+        bogus_bom = (
+            comma.extras._null +
+            '\x13'.encode('ascii') +
+            comma.extras._null +
+            comma.extras._null
+        )
+        result = comma.extras._detect_encoding_by_bom(
+            bogus_bom,
+            default=self.SOME_MADE_UP_ENCODING)
+
+        # all BOM detection should have failed, and we should have gotten the
+        # (made up) default encoding
+        assert result == self.SOME_MADE_UP_ENCODING
 
     @pytest.mark.parametrize("original_string", [SOME_UTF8_STRING_FRENCH_NAME])
     @pytest.mark.parametrize("encoding", ENCODINGS_GUESSABLE_BY_CHARDET)
