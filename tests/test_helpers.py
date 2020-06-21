@@ -306,6 +306,12 @@ class TestOpenStream:
         result = comma.helpers.open_stream(source=self.SOME_URL, no_request=False)
         TestOpenStream.check_stream(stream=result, check_content=self.SOME_DATA)
 
+        # redo with explicit encoding
+        result = comma.helpers.open_stream(source=self.SOME_URL,
+                                           encoding="ascii",
+                                           no_request=False)
+        TestOpenStream.check_stream(stream=result, check_content=self.SOME_DATA)
+
     def test_is_url_bytes(self, mocker, requests_mock):
         mocker.patch("comma.helpers.is_url", return_value=True)
         requests_mock.get(
@@ -324,6 +330,14 @@ class TestOpenStream:
         casted_bad_input = typing.cast(comma.typing.SourceType, list())
         result = comma.helpers.open_stream(source=casted_bad_input, no_request=True)
         assert result is None
+
+    def test_nonseekable_broken_source(self, mocker):
+        mock_source = mocker.Mock(
+            seekable=mocker.Mock(return_value=False),
+            read=mocker.Mock(return_value=[False]),
+        )
+        with pytest.raises(ValueError):
+            comma.helpers.open_stream(source=mock_source, no_request=True)
 
     def aux_test_zipfile(self, mocker, csv_file_count, txt_file_count):
         # build list of filenames

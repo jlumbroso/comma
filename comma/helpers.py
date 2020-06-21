@@ -306,6 +306,10 @@ def open_stream(
             
             elif type(data) is bytes:
                 source = io.BytesIO(data)
+
+            else:
+                raise ValueError(
+                    "provided source is neither StringIO nor BytesIO")
         
         # is it compressed? if so, unzip it
         if zipfile.is_zipfile(source):
