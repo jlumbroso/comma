@@ -270,6 +270,10 @@ class TestOpenStream:
     def test_byte_data_input(self):
         result = comma.helpers.open_stream(source=self.SOME_UTF8_ENCODED_STRING)
         TestOpenStream.check_stream(stream=result, check_content=self.SOME_UTF8_DECODED_STRING)
+        # redo with specified encoding
+        result = comma.helpers.open_stream(source=self.SOME_UTF8_ENCODED_STRING,
+                                           encoding="utf-8")
+        TestOpenStream.check_stream(stream=result, check_content=self.SOME_UTF8_DECODED_STRING)
 
     def test_unseekable_string_stream(self, mocker):
         # setup the mock source
@@ -519,6 +523,21 @@ class TestOpenCSV:
         # internally produced stream ("created" by `comma.helpers.open_stream()`)
         # should be closed
         assert string_stream.closed
+
+    def test_close_at_end(self, mocker):
+        """
+        Checks whether internally created streams are closed.
+        """
+        mock_stream = mocker.MagicMock(
+            seekable=False,
+            buffer=mocker.Mock(name="some stream"),
+            read=mocker.Mock(return_value=self.SOME_DATA_WITH_HEADER),
+            close=mocker.Mock(return_value=True)
+        )
+        mocker.patch("comma.helpers.open_stream", return_value=mock_stream)
+        comma.helpers.open_csv(source=mock_stream)
+
+        mock_stream.close.assert_not_called()
 
 
 class TestMultisliceSequence:
