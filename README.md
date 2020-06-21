@@ -115,7 +115,7 @@ files (but instead to compare them), [`daff`](https://github.com/paulfitz/daff)
 is a really cool project: It provides a `diff` of tabular data [with cell-level
 awareness](http://specs.frictionlessdata.io/tabular-diff/).
 
-Another unrelated project is [https://getgrist.com](Grist), a spreadsheet
+Another unrelated project is [Grist](https://www.getgrist.com/), a spreadsheet
 PaaS, which among other useful features, allows [the use of Python within
 formulas](https://support.getgrist.com/formulas/). 
 
