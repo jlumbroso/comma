@@ -5,8 +5,10 @@ import typing
 import pytest
 
 import comma
+import comma.typing
 
-SOME_CSV_STRING = "name,age,gender\nPerson1,33,M\nPerson2,25,M\n"
+
+SOME_CSV_STRING = "name,age,gender\nPerson1,33,F\nPerson2,25,M\n"
 SOME_CSV_STRING_HAS_HEADER = True
 SOME_CSV_STRING_ROW_COUNT = 2
 SOME_CSV_STRING_COL_COUNT = 3
