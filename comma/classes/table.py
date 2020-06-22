@@ -4,6 +4,7 @@ import comma.abstract
 import comma.classes.slices
 import comma.exceptions
 import comma.helpers
+import comma.methods
 
 __author__ = "Jérémie Lumbroso <lumbroso@cs.princeton.edu>"
 
@@ -51,6 +52,9 @@ class CommaTable(collections.UserList, list, collections.UserDict, comma.abstrac
         helper method for IPython/Jupyter notebooks.
         """
         return self.to_html()
+
+    def dump(self, filename=None, fp=None):
+        return comma.methods.dump(self, filename=filename, fp=fp)
 
     @property
     def has_header(self):

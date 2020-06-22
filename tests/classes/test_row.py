@@ -76,7 +76,8 @@ class TestCommaRow:
         assert comma_row.header == self.SOME_HEADER
 
     def test_keys_with_header(self, comma_row):
-        assert comma_row.keys() == comma_row.header
+        for a, b in zip(comma_row.keys(), comma_row.header):
+            assert a == b
 
     def test_keys_no_header(self, comma_row_no_parent):
         with pytest.raises(comma.exceptions.CommaException):

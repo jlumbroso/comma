@@ -1,6 +1,8 @@
 import collections
+import collections.abc
 import typing
 
+import comma.classes.file
 import comma.exceptions
 import comma.helpers
 
@@ -12,6 +14,7 @@ __all__ = [
 ]
 
 
+# noinspection PyUnresolvedReferences
 class CommaRow(collections.UserList, list, collections.UserDict):
     """
     Contains a single row of a CSV file; the row contains only data
@@ -20,7 +23,7 @@ class CommaRow(collections.UserList, list, collections.UserDict):
     """
 
     # parent CSV file
-    _parent = None
+    _parent = None  # type: comma.classes.file.CommaFile
 
     # (optionally) sequence of slicing operations
     _slice_list = None
@@ -38,7 +41,7 @@ class CommaRow(collections.UserList, list, collections.UserDict):
         **kwargs
     ):
         # initialize internal attributes
-        self._parent = parent
+        self._parent = typing.cast(comma.classes.file.CommaFile, parent)
         self._slice_list = slice_list if slice_list is not None else list()
         self._original = self if original is None else original
 
@@ -63,7 +66,7 @@ class CommaRow(collections.UserList, list, collections.UserDict):
             slice_list=self._slice_list)
 
     def keys(self):
-        return self.header
+        return collections.abc.KeysView(self.header)
 
     def values(self):
         return dict(self).values()
@@ -105,6 +108,11 @@ class CommaRow(collections.UserList, list, collections.UserDict):
         key_index = header.index(key)
 
         return key_index
+
+    # FIXME: add __iter__
+    def __iter__(self):
+        for i in range(len(self)):
+            yield self[i]
 
     def __setitem__(self, key, value):
         ##print("CommaRow.__setitem__", hex(id(self)), key, type(key), "<==", value, type(value))

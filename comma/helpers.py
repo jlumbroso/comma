@@ -24,6 +24,8 @@ __all__ = [
     "LINE_TERMINATORS",
     "LINE_TERMINATOR_DEFAULT",
 
+    "DefaultDialect",
+
     "is_local",
     "is_url",
     "detect_line_terminator",
@@ -44,6 +46,22 @@ URI_SCHEMES_ACCEPTED = ["http", "https"]
 LINE_TERMINATORS = ["\r\n", "\r", "\n"]
 
 LINE_TERMINATOR_DEFAULT = "\n"
+
+
+class DefaultDialect(csv.Dialect):
+    """
+    The default dialect for output, when no dialect is provided.
+    """
+
+    def __init__(self):
+        self.delimiter = ","
+        self.doublequote = True
+        self.escapechar = "\\"
+        self.lineterminator = LINE_TERMINATOR_DEFAULT
+        self.quotechar = '"'
+        self.quoting = csv.QUOTE_MINIMAL
+        self.skipinitialspace = True
+        self.strict = True
 
 
 def is_anystr(obj: typing.Union[typing.Any, typing.AnyStr]) -> bool:
