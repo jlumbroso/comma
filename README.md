@@ -5,7 +5,7 @@
 
 This library tries to make manipulating CSV files a great experience.
 
-![Example session](example-screenshot.png)
+![Example session](https://raw.githubusercontent.com/jlumbroso/comma/master/example-screenshot.png)
 
 ## Installation
 

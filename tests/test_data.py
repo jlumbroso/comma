@@ -132,11 +132,10 @@ class TestSacramentoRealEstateTransactions:
     @staticmethod
     def assert_record_has_changed(
             table_info: CommaTableTestingExtrasType,
-            original_string: typing.Optional[str] = None,
             modified_string: typing.Optional[str] = None,
     ):
         with extradict.MapGetter(table_info) as info:
-            from info import table, record_index, field_index
+            from info import table, record_index, field_index, original_value
             from info import some_record, some_record_copy
 
             # integrity: is the isolated record consistent with main record?
@@ -152,16 +151,15 @@ class TestSacramentoRealEstateTransactions:
 
             # check if copy still has original value
             if original_string is not None:
-                assert some_record_copy[field_index] == original_string
+                assert some_record_copy[field_index] == original_value
 
     # noinspection PyUnresolvedReferences
     @staticmethod
     def assert_record_unmodified(
             table_info: CommaTableTestingExtrasType,
-            string: typing.Optional[str] = None,
     ):
         with extradict.MapGetter(table_info) as info:
-            from info import table, record_index, field_index
+            from info import table, record_index, field_index, original_value
             from info import some_record, some_record_copy
 
             # integrity: is the isolated record consistent with main record?
@@ -169,9 +167,9 @@ class TestSacramentoRealEstateTransactions:
 
             # check whether all accesses to this record produce the same value
             if string is not None:
-                assert table[record_index][field_index] == string
+                assert table[record_index][field_index] == original_value
                 assert record[field_index] == string
-                assert some_record_copy[field_index] == string
+                assert some_record_copy[field_index] == original_value
 
             # is the same as the copy? (the above may succeed and below fail,
             # but not the opposite; i.e. below is strictly stronger than above,
@@ -270,7 +268,7 @@ class TestSacramentoRealEstateTransactions:
         propagated where expected, when fields are edited by index (list access).
         """
         with extradict.MapGetter(table_info) as info:
-            from info import table, record_index, field_index, original_value
+            from info import table, record_index, field_index
             from info import some_record, some_record_copy
 
             some_record[field_index] = self.SOME_STRING
@@ -278,7 +276,6 @@ class TestSacramentoRealEstateTransactions:
             # has the original record been modified?
             self.assert_record_has_changed(
                 table_info=table_info,
-                original_string=original_value,
                 modified_string=self.SOME_STRING,
             )
 
@@ -289,7 +286,7 @@ class TestSacramentoRealEstateTransactions:
         propagated where expected, when fields are edited by key (dict access).
         """
         with extradict.MapGetter(table_info) as info:
-            from info import table, record_index, field_index, field_name, original_value
+            from info import table, record_index, field_index, field_name
             from info import some_record, some_record_copy
 
             some_record[field_name] = self.SOME_STRING
@@ -297,7 +294,6 @@ class TestSacramentoRealEstateTransactions:
             # has the original record been modified?
             self.assert_record_has_changed(
                 table_info=table_info,
-                original_string=original_value,
                 modified_string=self.SOME_STRING,
             )
 
@@ -308,7 +304,7 @@ class TestSacramentoRealEstateTransactions:
         propagated where expected, when fields are edited by key (dict access).
         """
         with extradict.MapGetter(table_info) as info:
-            from info import table, record_index, field_index, field_name, original_value
+            from info import table, record_index, field_index, field_name
             from info import some_record, some_record_copy
 
             # TEST: CAN EDITING BY FIELD SLICING PROPAGATE MODIFICATIONS
@@ -317,7 +313,6 @@ class TestSacramentoRealEstateTransactions:
             # has the original record been modified?
             self.assert_record_has_changed(
                 table_info=table_info,
-                original_string=original_value,
                 modified_string=self.SOME_STRING,
             )
 
@@ -328,7 +323,7 @@ class TestSacramentoRealEstateTransactions:
         propagated where expected, when fields are edited by key (dict access).
         """
         with extradict.MapGetter(table_info) as info:
-            from info import table, record_index, field_index, field_name, original_value
+            from info import table, record_index, field_index, field_name
             from info import some_record, some_record_copy
 
             assert record_index < 10
@@ -337,7 +332,6 @@ class TestSacramentoRealEstateTransactions:
             # has the original record been modified?
             self.assert_record_has_changed(
                 table_info=table_info,
-                original_string=original_value,
                 modified_string=self.SOME_STRING,
             )
 
@@ -348,7 +342,7 @@ class TestSacramentoRealEstateTransactions:
         propagated where expected, when fields are edited by key (dict access).
         """
         with extradict.MapGetter(table_info) as info:
-            from info import table, record_index, field_index, field_name, original_value
+            from info import table, record_index, field_index, field_name
             from info import some_record, some_record_copy
 
             assert record_index < 10
@@ -357,7 +351,6 @@ class TestSacramentoRealEstateTransactions:
             # has the original record been modified?
             self.assert_record_has_changed(
                 table_info=table_info,
-                original_string=original_value,
                 modified_string=self.SOME_STRING,
             )
 
@@ -368,7 +361,7 @@ class TestSacramentoRealEstateTransactions:
         propagated where expected, when fields are edited by key (dict access).
         """
         with extradict.MapGetter(table_info) as info:
-            from info import table, record_index, field_index, field_name, original_value
+            from info import table, record_index, field_index, field_name
             from info import some_record, some_record_copy
 
             assert record_index < 10
@@ -377,7 +370,6 @@ class TestSacramentoRealEstateTransactions:
             # has the original record been modified?
             self.assert_record_has_changed(
                 table_info=table_info,
-                original_string=original_value,
                 modified_string=self.SOME_STRING,
             )
 
