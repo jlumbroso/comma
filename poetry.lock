@@ -124,6 +124,14 @@ python-versions = ">=2.6, !=3.0.*, !=3.1.*"
 version = "4.4.2"
 
 [[package]]
+category = "dev"
+description = "Enhanced, maybe useful, data containers and utilities: A versioned dictionary, a bidirectional dictionary, a binary tree backed dictionary and an easy extractor from dictionary key/values to variables"
+name = "extradict"
+optional = false
+python-versions = ">=3.6"
+version = "0.4.0"
+
+[[package]]
 category = "main"
 description = "Internationalized Domain Names in Applications (IDNA)"
 name = "idna"
@@ -530,7 +538,7 @@ autodetect = ["binaryornot", "clevercsv", "chardet"]
 net = ["requests"]
 
 [metadata]
-content-hash = "34bdc53e8ecae44212967322d5cc1f94a14d3019c8dba85ea8a4ff5b423c9dbb"
+content-hash = "d7723ec1f4f64c677d51688542441cc6b85b9acd7e648fab44cb6781706687f2"
 python-versions = "^3.8"
 
 [metadata.files]
@@ -631,6 +639,9 @@ coverage = [
 decorator = [
     {file = "decorator-4.4.2-py2.py3-none-any.whl", hash = "sha256:41fa54c2a0cc4ba648be4fd43cff00aedf5b9465c9bf18d64325bc225f08f760"},
     {file = "decorator-4.4.2.tar.gz", hash = "sha256:e3a62f0520172440ca0dcc823749319382e377f37f140a0b99ef45fecb84bfe7"},
+]
+extradict = [
+    {file = "extradict-0.4.0.tar.gz", hash = "sha256:2653853fac1d6691499d32fbe30dfe76335a5381fa2117b45116cc3815fd4519"},
 ]
 idna = [
     {file = "idna-2.9-py2.py3-none-any.whl", hash = "sha256:a068a21ceac8a4d63dbfd964670474107f541babbd2250d61922f029858365fa"},

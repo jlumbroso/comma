@@ -2,7 +2,9 @@
 import copy
 import csv
 import os
+import typing
 
+import extradict
 import pytest
 
 import comma
@@ -18,7 +20,25 @@ DATA_DIR = os.path.join(
 )
 
 
+CommaTableTestingExtrasType = typing.TypedDict(
+    "CommaTableTestingExtras", {
+        # the fixture table
+        "table": comma.classes.table.CommaTable,
+
+        # coordinates to a record that is guaranteed to exist
+        "record_index": int,
+        "field_index": int,
+        "field_name": str,
+        "original_value": typing.Any,
+
+        # references to the record and a copy
+        "some_record": comma.classes.row.CommaRow,
+        "some_record_copy": comma.classes.row.CommaRow,
+    })
+
+
 # NOTE: refactor to make this an abstract test class?
+# noinspection DuplicatedCode
 class TestSacramentoRealEstateTransactions:
 
     FILENAME = "Sacramentorealestatetransactions.csv"
@@ -33,14 +53,6 @@ class TestSacramentoRealEstateTransactions:
     SOME_COLUMN_INDEX = 0
 
     SOME_STRING = "some-arbitrary-string"
-
-    @pytest.fixture()
-    def table(self):
-        """
-        Returns (as a pytest fixture) a newly loaded `CommaTable` object from
-        this class' test data file.
-        """
-        return comma.load(self.FILEPATH)
 
     @pytest.fixture()
     def table_csv(self):
@@ -62,6 +74,112 @@ class TestSacramentoRealEstateTransactions:
             data = list(csv.DictReader(file))
         return data
 
+    @pytest.fixture()
+    def table(self) -> comma.classes.table.CommaTable:
+        """
+        Returns (as a pytest fixture) a newly loaded `CommaTable` object from
+        this class' test data file.
+        """
+        return comma.load(self.FILEPATH)
+
+    @pytest.fixture()
+    def table_info(
+            self,
+            table: comma.classes.table.CommaTable
+    ) -> CommaTableTestingExtrasType:
+        """
+        Returns a subclass with a few different setup interdependent fixtures.
+        """
+        assert isinstance(table, comma.classes.table.CommaTable)
+        assert table.has_header
+        assert table.header is not None
+
+        record_index = self.SOME_RECORD_INDEX
+        field_index = self.SOME_COLUMN_INDEX
+        assert len(table.header) > field_index
+        field_name = table.header[field_index]
+
+        # assert we are able to access that index
+        assert len(table) > record_index
+        assert len(table[record_index]) > field_index
+
+        # extract first record and make a copy
+        some_record = table[record_index]
+        assert isinstance(some_record, comma.classes.row.CommaRow)
+        some_record_copy = copy.deepcopy(some_record)
+        assert isinstance(some_record_copy, comma.classes.row.CommaRow)
+
+        # verify that the two records match
+        # NOTE: depending on how the cast to dictionary is done, this may fail
+        assert dict(some_record) == dict(some_record_copy)
+
+        return typing.cast(CommaTableTestingExtrasType, {
+            # the fixture table
+            "table": table,
+
+            # coordinates to a record that is guaranteed to exist
+            "record_index": record_index,
+            "field_index": field_index,
+            "field_name": field_name,
+            "original_value": some_record[field_index],
+
+            # references to the record and a copy
+            "some_record": some_record,
+            "some_record_copy": some_record_copy,
+        })
+
+    # noinspection PyUnresolvedReferences
+    @staticmethod
+    def assert_record_has_changed(
+            table_info: CommaTableTestingExtrasType,
+            original_string: typing.Optional[str] = None,
+            modified_string: typing.Optional[str] = None,
+    ):
+        with extradict.MapGetter(table_info) as info:
+            from info import table, record_index, field_index
+            from info import some_record, some_record_copy
+
+            # integrity: is the isolated record consistent with main record?
+            assert table[record_index][field_index] == some_record[field_index]
+
+            # correctness: has the isolated record been modified?
+            if modified_string is not None:
+                assert table[record_index][field_index] == modified_string
+
+            # does it differ from the copy?
+            assert dict(some_record) != dict(some_record_copy)
+            assert dict(table[record_index]) != dict(some_record_copy)
+
+            # check if copy still has original value
+            if original_string is not None:
+                assert some_record_copy[field_index] == original_string
+
+    # noinspection PyUnresolvedReferences
+    @staticmethod
+    def assert_record_unmodified(
+            table_info: CommaTableTestingExtrasType,
+            string: typing.Optional[str] = None,
+    ):
+        with extradict.MapGetter(table_info) as info:
+            from info import table, record_index, field_index
+            from info import some_record, some_record_copy
+
+            # integrity: is the isolated record consistent with main record?
+            assert table[record_index][field_index] == some_record[field_index]
+
+            # check whether all accesses to this record produce the same value
+            if string is not None:
+                assert table[record_index][field_index] == string
+                assert record[field_index] == string
+                assert some_record_copy[field_index] == string
+
+            # is the same as the copy? (the above may succeed and below fail,
+            # but not the opposite; i.e. below is strictly stronger than above,
+            # but test is intended to be granular)
+            assert dict(some_record) == dict(some_record_copy)
+            assert dict(table[record_index]) == dict(some_record)
+            assert dict(table[record_index]) == dict(some_record_copy)
+
     @staticmethod
     def assert_iter_by_value(iter1, iter2):
         """
@@ -70,7 +188,7 @@ class TestSacramentoRealEstateTransactions:
         for a, b in zip(iter1, iter2):
             assert a == b
 
-    def test_readonly_file_validation(self, table):
+    def test_readonly_file_validation(self, table: comma.classes.table.CommaTable):
         """
         Checks whether the file that is being run by this test module is the
         file that is expected, using some magic numbers hard-coded in this class.
@@ -82,7 +200,7 @@ class TestSacramentoRealEstateTransactions:
         assert table.has_header
         assert table.header == self.DATA_HEADER
 
-    def test_readonly_field_slicing(self, table):
+    def test_readonly_field_slicing(self, table: comma.classes.table.CommaTable):
         """
         Checks whether the field slicing feature, wherein you can extract an
         entire column, works.
@@ -114,7 +232,12 @@ class TestSacramentoRealEstateTransactions:
             # compare all values
             self.assert_iter_by_value(column_by_index, column_by_name)
 
-    def test_readonly_compare_with_standard_csv(self, table, table_csv, table_csv_dict):
+    def test_readonly_compare_with_standard_csv(
+            self,
+            table: comma.classes.table.CommaTable,
+            table_csv,
+            table_csv_dict
+    ):
         """
         Checks to see if the data read by `comma.load()` is comparable to that
         read by the standard library's `csv` module.
@@ -140,39 +263,143 @@ class TestSacramentoRealEstateTransactions:
                 # compare with direct indexing on list CSV file
                 assert row_comma[field_index] == table_csv[row_index][field_index]
 
-    def test_modify_record(self, table):
+    # noinspection PyUnresolvedReferences
+    def test_modify_record_by_index(self, table_info: CommaTableTestingExtrasType):
         """
         Checks to see if modifications to a `CommaTable` object are correctly
-        propagated where expected.
+        propagated where expected, when fields are edited by index (list access).
         """
-        assert isinstance(table, comma.classes.table.CommaTable)
+        with extradict.MapGetter(table_info) as info:
+            from info import table, record_index, field_index, original_value
+            from info import some_record, some_record_copy
 
-        record_index = self.SOME_RECORD_INDEX
-        field_index = self.SOME_COLUMN_INDEX
+            some_record[field_index] = self.SOME_STRING
 
-        # assert we are able to access that index
-        assert len(table) > record_index
-        assert len(table[record_index]) > field_index
+            # has the original record been modified?
+            self.assert_record_has_changed(
+                table_info=table_info,
+                original_string=original_value,
+                modified_string=self.SOME_STRING,
+            )
 
-        # extract first record and make a copy
-        some_record = table[record_index]
-        assert isinstance(some_record, comma.classes.row.CommaRow)
-        some_record_copy = copy.deepcopy(some_record)
+    # noinspection PyUnresolvedReferences
+    def test_modify_record_by_name(self, table_info: CommaTableTestingExtrasType):
+        """
+        Checks to see if modifications to a `CommaTable` object are correctly
+        propagated where expected, when fields are edited by key (dict access).
+        """
+        with extradict.MapGetter(table_info) as info:
+            from info import table, record_index, field_index, field_name, original_value
+            from info import some_record, some_record_copy
 
-        # verify that the two records match
-        # NOTE: depending on how the cast to dictionary is done, this may fail
-        assert dict(some_record) == dict(some_record_copy)
+            some_record[field_name] = self.SOME_STRING
 
-        some_record[field_index] = self.SOME_STRING
+            # has the original record been modified?
+            self.assert_record_has_changed(
+                table_info=table_info,
+                original_string=original_value,
+                modified_string=self.SOME_STRING,
+            )
 
-        # has the original record been modified?
-        assert table[record_index][field_index] == self.SOME_STRING
-        assert table[record_index][field_index] == some_record[field_index]
+    # noinspection PyUnresolvedReferences
+    def test_modify_record_field_slicing(self, table_info: CommaTableTestingExtrasType):
+        """
+        Checks to see if modifications to a `CommaTable` object are correctly
+        propagated where expected, when fields are edited by key (dict access).
+        """
+        with extradict.MapGetter(table_info) as info:
+            from info import table, record_index, field_index, field_name, original_value
+            from info import some_record, some_record_copy
 
-        # does it differ from the copy?
-        assert dict(some_record) != dict(some_record_copy)
-        assert dict(table[record_index]) != dict(some_record_copy)
+            # TEST: CAN EDITING BY FIELD SLICING PROPAGATE MODIFICATIONS
+            table[field_name][record_index] = self.SOME_STRING
 
+            # has the original record been modified?
+            self.assert_record_has_changed(
+                table_info=table_info,
+                original_string=original_value,
+                modified_string=self.SOME_STRING,
+            )
+
+    # noinspection PyUnresolvedReferences
+    def test_modify_record_with_slice(self, table_info: CommaTableTestingExtrasType):
+        """
+        Checks to see if modifications to a `CommaTable` object are correctly
+        propagated where expected, when fields are edited by key (dict access).
+        """
+        with extradict.MapGetter(table_info) as info:
+            from info import table, record_index, field_index, field_name, original_value
+            from info import some_record, some_record_copy
+
+            assert record_index < 10
+            table[0:10][record_index][field_name] = self.SOME_STRING
+
+            # has the original record been modified?
+            self.assert_record_has_changed(
+                table_info=table_info,
+                original_string=original_value,
+                modified_string=self.SOME_STRING,
+            )
+
+    # noinspection PyUnresolvedReferences
+    def test_modify_record_slice_and_field_slice(self, table_info: CommaTableTestingExtrasType):
+        """
+        Checks to see if modifications to a `CommaTable` object are correctly
+        propagated where expected, when fields are edited by key (dict access).
+        """
+        with extradict.MapGetter(table_info) as info:
+            from info import table, record_index, field_index, field_name, original_value
+            from info import some_record, some_record_copy
+
+            assert record_index < 10
+            table[0:10][field_name][record_index] = self.SOME_STRING
+
+            # has the original record been modified?
+            self.assert_record_has_changed(
+                table_info=table_info,
+                original_string=original_value,
+                modified_string=self.SOME_STRING,
+            )
+
+    # noinspection PyUnresolvedReferences
+    def test_modify_record_field_slice_and_slice(self, table_info: CommaTableTestingExtrasType):
+        """
+        Checks to see if modifications to a `CommaTable` object are correctly
+        propagated where expected, when fields are edited by key (dict access).
+        """
+        with extradict.MapGetter(table_info) as info:
+            from info import table, record_index, field_index, field_name, original_value
+            from info import some_record, some_record_copy
+
+            assert record_index < 10
+            table[field_name][0:10][record_index] = self.SOME_STRING
+
+            # has the original record been modified?
+            self.assert_record_has_changed(
+                table_info=table_info,
+                original_string=original_value,
+                modified_string=self.SOME_STRING,
+            )
+
+    # noinspection PyUnresolvedReferences
+    def test_modify_record_field_slice_and_slice(self, table_info: CommaTableTestingExtrasType):
+        """
+        Checks to see if modifications to a `CommaTable` object are correctly
+        propagated where expected, when fields are edited by key (dict access).
+        """
+        with extradict.MapGetter(table_info) as info:
+            from info import table, record_index, field_index, field_name, original_value
+            from info import some_record, some_record_copy
+
+            assert record_index < 10
+            table[field_name][record_index][field_index:field_index+1] = self.SOME_STRING
+
+            # has the original record been modified?
+            self.assert_record_has_changed(
+                table_info=table_info,
+                original_string=original_value,
+                modified_string=self.SOME_STRING,
+            )
 
 
 
