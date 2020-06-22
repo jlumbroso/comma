@@ -87,6 +87,7 @@ def dump(
     parent = None
     has_header = header is not None
     dialect = comma.helpers.DefaultDialect()
+    original_header = None
 
     klass_cf = comma.classes.file.CommaFile
     if isinstance(records, comma.classes.table.CommaTable):
@@ -100,6 +101,7 @@ def dump(
         parent = records[0]._parent
 
     if parent is not None:
+        original_header = parent.header
         # only overwrite if not user specified
         if header is None:
             header = parent.header
@@ -120,6 +122,12 @@ def dump(
         )
 
     for record in records:
+
+        if original_header != header:
+            new_record = dict()
+            for field_orig, field_renamed in zip(original_header, header):
+                new_record[field_renamed] = record[field_orig]
+            record = new_record
         writer.writerow(record)
 
     ret = output.getvalue()
