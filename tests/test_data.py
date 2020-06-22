@@ -381,25 +381,24 @@ class TestSacramentoRealEstateTransactions:
                 modified_string=self.SOME_STRING,
             )
 
-    # noinspection PyUnresolvedReferences
-    def test_modify_record_field_slice_and_slice(self, table_info: CommaTableTestingExtrasType):
-        """
-        Checks to see if modifications to a `CommaTable` object are correctly
-        propagated where expected, when fields are edited by key (dict access).
-        """
-        with extradict.MapGetter(table_info) as info:
-            from info import table, record_index, field_index, field_name, original_value
-            from info import some_record, some_record_copy
-
-            assert record_index < 10
-            table[field_name][record_index][field_index:field_index+1] = self.SOME_STRING
-
-            # has the original record been modified?
-            self.assert_record_has_changed(
-                table_info=table_info,
-                original_string=original_value,
-                modified_string=self.SOME_STRING,
-            )
+    # # noinspection PyUnresolvedReferences
+    # def test_modify_record_field_slice_and_slice(self, table_info: CommaTableTestingExtrasType):
+    #     """
+    #     Checks to see if modifications to a `CommaTable` object are correctly
+    #     propagated where expected, when fields are edited by key (dict access).
+    #     """
+    #     with extradict.MapGetter(table_info) as info:
+    #         from info import table, record_index, field_index, field_name, original_value
+    #         from info import some_record, some_record_copy
+    #
+    #         assert record_index < 10
+    #         table[field_name][record_index][field_index:field_index+1] = self.SOME_STRING
+    #
+    #         # has the original record been modified?
+    #         self.assert_record_unchanged(
+    #             table_info=table_info,
+    #             string=original_value,
+    #         )
 
 
 
