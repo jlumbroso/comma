@@ -11,11 +11,11 @@ This library tries to make manipulating CSV files a great experience.
 
 If you use pip:
 ```shell script
-pip install comma
+pip install 'comma[autodetect,net]'
 ```
 or if you use pipenv:
 ```shell script
-pipenv install comma
+pipenv install 'comma[autodetect,net]'
 ```
 
 ## Why?
@@ -50,7 +50,9 @@ when you do:
 
 ```python
 import comma
-data = comma.load(...)
+data = comma.load("file.csv")
+data[0]["field"] = "changed value"
+comma.dump(data, filename="file_modified.csv")
 ``` 
 
 ## Alternatives
@@ -60,7 +62,8 @@ CSV and tabular files in general. (Some of these were discovered through
 the excellent [Awesome Python](https://awesome-python.com/) list.)
 
 - [`clevercsv`](https://github.com/alan-turing-institute/CleverCSV): An
-  exceptional library by @GjjvdBurg, builds on statistical and empirical
+  exceptional library by [@GjjvdBurg](https://github.com/GjjvdBurg),
+  builds on statistical and empirical
   to provide powerful and reliable CSV dialect detection. However, it
   strives to be a drop-in replacement for the original Python `csv`
   module, and as such does not improve on the complex syntax. This
@@ -107,6 +110,10 @@ the excellent [Awesome Python](https://awesome-python.com/) list.)
   streamed line-by-line; the library supports a broad array of formats
   including reading data directly from Google Spreadsheets. However
   this power means that reading a CSV file requires several operations.
+
+Although not specifically restricted to Python, the
+[AwesomeCSV](https://github.com/secretGeek/AwesomeCSV) resource is also
+interesting.
 
 ### Miscellaneous
 

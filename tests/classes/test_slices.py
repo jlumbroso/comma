@@ -126,28 +126,28 @@ class TestCommaFieldSlice:
             assert val_from_cfs == row[field_index]
 
 
-# noinspection PyProtectedMember
-class TestCommaRowSlice:
-
-    SOME_HEADER = ["field1", "field2"]
-    SOME_DATA_ROWS = [["data", "data2"], ["datarow2", "datarow2B"]]
-    SOME_DATA_ROW = SOME_DATA_ROWS[0]
-    SOME_DATA_DICT = dict(zip(SOME_HEADER, SOME_DATA_ROW))
-    SOME_NON_HEADER_NAME = "cassava"
-
-    @pytest.fixture()
-    def comma_row_slice(self, mocker):
-        """
-        Returns a fixture for a functional `comma.classes.slices.CommaRowSlice`
-        object, with sample data, mock parent `CommaFile` object and a `header`.
-        """
-        mock_parent = mocker.Mock(header=self.SOME_HEADER)
-        comma_row_slice_obj = comma.classes.slices.CommaRowSlice(
-            self.SOME_DATA_ROW,
-            parent=mock_parent,
-        )
-        return comma_row_slice_obj
-
-    def test(self, comma_row_slice):
-        assert comma_row_slice._parent is not None
+# # noinspection PyProtectedMember
+# class TestCommaRowSlice:
+#
+#     SOME_HEADER = ["field1", "field2"]
+#     SOME_DATA_ROWS = [["data", "data2"], ["datarow2", "datarow2B"]]
+#     SOME_DATA_ROW = SOME_DATA_ROWS[0]
+#     SOME_DATA_DICT = dict(zip(SOME_HEADER, SOME_DATA_ROW))
+#     SOME_NON_HEADER_NAME = "cassava"
+#
+#     @pytest.fixture()
+#     def comma_row_slice(self, mocker):
+#         """
+#         Returns a fixture for a functional `comma.classes.slices.CommaRowSlice`
+#         object, with sample data, mock parent `CommaFile` object and a `header`.
+#         """
+#         mock_parent = mocker.Mock(header=self.SOME_HEADER)
+#         comma_row_slice_obj = comma.classes.slices.CommaRowSlice(
+#             self.SOME_DATA_ROW,
+#             parent=mock_parent,
+#         )
+#         return comma_row_slice_obj
+#
+#     def test(self, comma_row_slice):
+#         assert comma_row_slice._parent is not None
 
