@@ -150,7 +150,7 @@ class TestSacramentoRealEstateTransactions:
             assert dict(table[record_index]) != dict(some_record_copy)
 
             # check if copy still has original value
-            if original_string is not None:
+            if original_value is not None:
                 assert some_record_copy[field_index] == original_value
 
     # noinspection PyUnresolvedReferences
