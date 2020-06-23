@@ -26,6 +26,7 @@ __all__ = [
 
     "DefaultDialect",
 
+    "is_anystr",
     "is_local",
     "is_url",
     "detect_line_terminator",
@@ -33,6 +34,9 @@ __all__ = [
     "open_csv",
 
     "multislice_sequence",
+    "multislice_range",
+    "multislice_index",
+
     "zip_html_tag",
 ]
 
@@ -506,6 +510,9 @@ def multislice_range(size: int, slice_list: typing.List[slice] = None) -> range:
 
 def multislice_index(index: int, size: int, slice_list: typing.List[slice] = None) -> int:
     """
+    Returns the original index in the original sequence from the index
+    in the sequence after applying multiple slicing operations. This
+    makes it easier to recover the original index.
     """
     return multislice_range(size=size, slice_list=slice_list)[index]
 
@@ -517,7 +524,9 @@ def zip_html_tag(
         indent: int = 0
 ) -> str:
     """
-
+    Returns the HTML code of a template applied to a Python list; to
+    be used to build the rows of tables, or bullet lists in
+    `_repr_html_()` outputs.
     """
     if type(indent) is not int:
         indent = 0
