@@ -540,7 +540,7 @@ class TestOpenCSV:
         mock_stream.close.assert_not_called()
 
 
-class TestMultisliceSequence:
+class TestMultislice:
     """
     Tests for the `comma.helpers.multislice_sequence()` helper method, which
     applies a sequence of slice operations to an initial list. This test module
@@ -549,6 +549,8 @@ class TestMultisliceSequence:
     """
 
     SOME_LIST = list(range(10))
+    SOME_INDEX = 0
+    LAST_INDEX = -1
     ALL_BUT_LAST_SLICE = slice(0, -1, None)
 
     def test_none_slice_list(self):
@@ -586,6 +588,23 @@ class TestMultisliceSequence:
 
             # remove last element of comparison list
             current = current[self.ALL_BUT_LAST_SLICE]
+
+    def test_multislice_index(self):
+        """
+        Checks whether the dependent method `multislice_index()` functions properly.
+        """
+        assert comma.helpers.multislice_index(
+            index=self.SOME_INDEX,
+            size=len(self.SOME_LIST),
+            slice_list=[]) == self.SOME_INDEX
+        assert comma.helpers.multislice_index(
+            index=self.SOME_INDEX,
+            size=len(self.SOME_LIST),
+            slice_list=[self.ALL_BUT_LAST_SLICE]) == self.SOME_INDEX
+        assert comma.helpers.multislice_index(
+            index=self.LAST_INDEX,
+            size=len(self.SOME_LIST),
+            slice_list=[self.ALL_BUT_LAST_SLICE]) == len(self.SOME_LIST) - 2
 
 
 class TestZipHtmlTag:

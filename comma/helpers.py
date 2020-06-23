@@ -493,6 +493,23 @@ def multislice_sequence(
     return new_sequence
 
 
+def multislice_range(size: int, slice_list: typing.List[slice] = None) -> range:
+    """
+    Returns the range of indexes that are preserved by a succession of
+    slicing operations on the range [0, size). This makes it easier to
+    recover the original index.
+    """
+    return typing.cast(
+        typ=range,
+        val=comma.helpers.multislice_sequence(range(size), slice_list=slice_list))
+
+
+def multislice_index(index: int, size: int, slice_list: typing.List[slice] = None) -> int:
+    """
+    """
+    return multislice_range(size=size, slice_list=slice_list)[index]
+
+
 def zip_html_tag(
         data: typing.Iterable,
         in_pattern: str = "<td style='text-align: left;'>{}</td>",
