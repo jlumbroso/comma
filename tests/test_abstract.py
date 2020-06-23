@@ -72,6 +72,21 @@ class TestCloneableCollection:
         assert obj1.data == self.SOME_LIST
         assert obj2.data == self.SOME_OTHER_LIST
 
+    def test_no_parent(self):
+        """
+        Checks to see if the parameter `no_parent` properly strips the
+        cloned object of the parent field if set to `True`.
+        """
+        # create an object, that has a _parent attribute, to see if it is removed
+        obj1 = TestCloneableCollection.make_mock_obj(data=self.SOME_LIST)
+        obj1._parent = self.SOME_STRING
+        obj2 = obj1.clone(newdata=self.SOME_OTHER_LIST, no_parent=True)
+
+        # check correctness of operation
+        assert obj1.data == self.SOME_LIST
+        assert obj2.data == self.SOME_OTHER_LIST
+        assert obj2._parent is None
+
     def test_other_kwarg_not_present(self):
         """
 

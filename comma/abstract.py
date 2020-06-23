@@ -1,5 +1,4 @@
 
-import copy
 import typing
 
 
@@ -31,7 +30,7 @@ class CloneableCollection(object):
 
         return True
 
-    def clone(self, newdata: typing.Any = None, **kwargs):
+    def clone(self, newdata: typing.Any = None, no_parent=False, **kwargs):
         """
         Returns a clone of the current collection, with possible different
         underlying data, as specified by `newdata`.
@@ -69,5 +68,9 @@ class CloneableCollection(object):
 
         # Avoid triggering descriptors
         inst.__dict__["data"] = newdata
+
+        # Remove parent
+        if "_parent" in inst.__dict__ and no_parent:
+            inst.__dict__["_parent"] = None
 
         return inst
