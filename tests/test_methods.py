@@ -9,14 +9,26 @@ import comma.methods
 import comma.typing
 
 
+SOME_FILENAME = "somefilename.csv"
+
 SOME_CSV_STRING = "name,age,gender\nPerson1,33,F\nPerson2,25,M\n"
 SOME_CSV_STRING_NO_HEADER = "\n".join(SOME_CSV_STRING.split("\n")[1:])
 SOME_CSV_STRING_HAS_HEADER = True
 SOME_CSV_STRING_ROW_COUNT = 2
 SOME_CSV_STRING_COL_COUNT = 3
+
+SOME_HEADER = SOME_CSV_STRING.split("\n")[0]
 SOME_OTHER_HEADER = "nom,age,genre"
 
-SOME_FILENAME = "somefilename.csv"
+# manually compute the table by splitting lines and commas
+
+SOME_CSV_DATA = list(map(
+    lambda s: s.split(","),
+    SOME_CSV_STRING.strip().split("\n")))
+
+SOME_CSV_DATA_NO_HEADER = list(map(
+    lambda s: s.split(","),
+    SOME_CSV_STRING_NO_HEADER.strip().split("\n")))
 
 
 class TestLoad:
@@ -103,11 +115,12 @@ class TestLoad:
         assert stream.closed
         assert ret == SOME_CSV_STRING
 
-    def test_dump_to_steam(self):
+    @pytest.mark.parametrize("no_echo", [True, False])
+    def test_dump_to_steam(self, no_echo):
         obj = comma.methods.load(SOME_CSV_STRING)
 
         stream = io.StringIO()
-        ret = comma.methods.dump(obj, fp=stream)
+        ret = comma.methods.dump(obj, fp=stream, no_echo=no_echo)
 
         assert not stream.closed
 
@@ -117,12 +130,31 @@ class TestLoad:
         stream.close()
         assert stream.closed
 
-    def test_dump_from_raw_data(self):
-        # manually compute the table by splitting lines and commas
-        obj_manual = list(map(lambda s: s.split(","), SOME_CSV_STRING.strip().split("\n")))
-        assert comma.methods.dump(obj_manual) == SOME_CSV_STRING
+        if no_echo:
+            assert ret is None
+        else:
+            assert ret == SOME_CSV_STRING
+
+    @pytest.mark.parametrize("no_echo", [True, False])
+    def test_dump_from_raw_data(self, no_echo):
+        obj_manual = copy.deepcopy(SOME_CSV_DATA)
+        assert comma.methods.dump(obj_manual, no_echo=no_echo) == SOME_CSV_STRING
 
         # checking that the manual computation makes sense
         obj_comma = comma.methods.load(SOME_CSV_STRING)
         assert comma.methods.dump(obj_manual) == comma.methods.dump(obj_comma)
+
+    def test_dump_with_added_headers(self):
+
+        # set up the objects
+        obj_manual = copy.deepcopy(SOME_CSV_DATA_NO_HEADER)
+        obj_comma = comma.methods.load(SOME_CSV_STRING)
+
+        # compute the dumps
+        str_manual_with_headers = comma.methods.dump(obj_manual, header=SOME_HEADER.split(","))
+        str_comma = comma.methods.dump(obj_comma)
+
+        # compare both to reference string and result on reference conversion
+        assert str_manual_with_headers == SOME_CSV_STRING
+        assert str_manual_with_headers == str_comma
 
