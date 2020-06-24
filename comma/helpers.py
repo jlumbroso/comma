@@ -57,7 +57,27 @@ class DefaultDialect(csv.Dialect):
     The default dialect for output, when no dialect is provided.
     """
 
+    @classmethod
+    def override(cls, **kwargs) -> csv.Dialect:
+        """
+        Creates a `csv.Dialect` object that only overrides certain
+        settings from the default dialect.
+        """
+        obj = cls()
+
+        for field, value in kwargs.items():
+            if field not in obj.__dict__:
+                raise AttributeError(
+                    "Class `{}` does not have a field `{}` to override".format(
+                        cls, field))
+            obj.__dict__[field] = value
+
+        return obj
+
     def __init__(self):
+        """
+        Creates a `csv.Dialect` with the package's default settings.
+        """
         self.delimiter = ","
         self.doublequote = True
         self.escapechar = "\\"
@@ -398,10 +418,10 @@ def open_stream(
 
 
 def open_csv(
-        source: comma.typing.SourceType,
-        encoding: str = None,
-        delimiters: typing.Optional[typing.Iterable[str]] = None,
-        no_request: bool = False,
+    source: comma.typing.SourceType,
+    encoding: str = None,
+    delimiters: typing.Optional[typing.Iterable[str]] = None,
+    no_request: bool = False,
 ) -> comma.typing.CommaInfoType:
     """
     Returns a `CommaInfoType` typed dictionary containing the data and
@@ -481,8 +501,8 @@ def open_csv(
 
 
 def multislice_sequence(
-        sequence: typing.Sequence[typing.Any],
-        slice_list: typing.List[slice] = None,
+    sequence: typing.Sequence[typing.Any],
+    slice_list: typing.List[slice] = None,
 ) -> typing.Sequence[typing.Any]:
     """
     Returns the sub-sequence obtained from sequentially slicing the
@@ -518,10 +538,10 @@ def multislice_index(index: int, size: int, slice_list: typing.List[slice] = Non
 
 
 def zip_html_tag(
-        data: typing.Iterable,
-        in_pattern: str = "<td style='text-align: left;'>{}</td>",
-        out_pattern: str = "<tr>{}</tr>",
-        indent: int = 0
+    data: typing.Iterable,
+    in_pattern: str = "<td style='text-align: left;'>{}</td>",
+    out_pattern: str = "<tr>{}</tr>",
+    indent: int = 0
 ) -> str:
     """
     Returns the HTML code of a template applied to a Python list; to

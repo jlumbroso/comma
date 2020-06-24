@@ -57,6 +57,32 @@ def test_detect_unexpected_constants():
                     ))
 
 
+def test_default_dialect_override():
+    """
+    Checks that the `DefaultDialect.override()` constructor method correctly
+    creates dialects with only specified differences.
+    """
+
+    some_new_delimiter = ";"
+
+    obj1 = comma.helpers.DefaultDialect()
+    obj2 = comma.helpers.DefaultDialect.override()
+
+    # references are different
+    assert obj1 != obj2
+
+    # but all attributes should be the same
+    assert obj1.__dict__ == obj2.__dict__
+
+    obj3 = comma.helpers.DefaultDialect.override(delimiter=some_new_delimiter)
+
+    assert obj3.delimiter == some_new_delimiter
+    assert obj3.delimiter != obj2.delimiter
+
+    with pytest.raises(AttributeError):
+        comma.helpers.DefaultDialect.override(some_non_existing_param=";")
+
+
 class TestIsAnyStr:
     """
     Test cases for the comma.helpers.is_anystr() method.
