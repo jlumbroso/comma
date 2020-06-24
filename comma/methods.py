@@ -28,7 +28,7 @@ def load(
     """
 
     # Use the helper method to open the data, parse it and return
-    # a CommaInfo typed dictionary.
+    # a CommaInfoType typed dictionary.
 
     csv_comma_info = comma.helpers.open_csv(
         source=source,

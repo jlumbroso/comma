@@ -402,9 +402,9 @@ def open_csv(
         encoding: str = None,
         delimiters: typing.Optional[typing.Iterable[str]] = None,
         no_request: bool = False,
-) -> comma.typing.CommaInfo:
+) -> comma.typing.CommaInfoType:
     """
-    Returns a `CommaInfo` typed dictionary containing the data and
+    Returns a `CommaInfoType` typed dictionary containing the data and
     metadata related to a CSV file. The `source` can be actual data,
     a local file path, or a URL; it is possible to provide a stream
     that is compressed using ZIP.

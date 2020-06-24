@@ -21,7 +21,7 @@ DATA_DIR = os.path.join(
 
 
 CommaTableTestingExtrasType = typing.TypedDict(
-    "CommaTableTestingExtras", {
+    "CommaTableTestingExtrasType", {
         # the fixture table
         "table": comma.classes.table.CommaTable,
 

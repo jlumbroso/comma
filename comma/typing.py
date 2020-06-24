@@ -11,8 +11,8 @@ __all__ = [
     "DialectType",
     "SimpleDialectType",
 
-    "CommaInfo",
-    "CommaInfoParams"
+    "CommaInfoType",
+    "CommaInfoParamsType"
 ]
 
 
@@ -43,8 +43,8 @@ except ImportError:  # pragma: no cover
 
 # Type definitions for helper dictionaries
 
-CommaInfoParams = typing.TypedDict(
-    "CommaInfoParams", {
+CommaInfoParamsType = typing.TypedDict(
+    "CommaInfoParamsType", {
         #
         "dialect":         DialectType,
 
@@ -56,8 +56,8 @@ CommaInfoParams = typing.TypedDict(
         "line_terminator": str,
     })
 
-CommaInfo = typing.TypedDict(
-    "CommaInfo", {
+CommaInfoType = typing.TypedDict(
+    "CommaInfoType", {
         # the parsed CSV rows
         "rows":   typing.List[typing.List[str]],
 
@@ -69,5 +69,5 @@ CommaInfo = typing.TypedDict(
 
         # CSV parameters
         "header": typing.Optional[typing.List[str]],
-        "params": CommaInfoParams,
+        "params": CommaInfoParamsType,
     })

@@ -28,7 +28,7 @@ class CommaFile(object):
     def __init__(
             self,
             header=None,
-            params: comma.typing.CommaInfoParams = None,
+            params: comma.typing.CommaInfoParamsType = None,
             primary_key: typing.Optional[str] = None
     ):
         self._header = header
