@@ -8,12 +8,25 @@ __author__ = "Jérémie Lumbroso <lumbroso@cs.princeton.edu>"
 __all__ = [
     "SourceType",
 
+    "HeaderType",
+
     "DialectType",
     "SimpleDialectType",
 
     "CommaInfoType",
     "CommaInfoParamsType"
 ]
+
+
+# Our type hint for a CSV header
+# (essentially a list of strings, or anything that looks like that)
+
+HeaderType = typing.Union[
+    typing.List[typing.AnyStr],
+    typing.Iterable[typing.Any],
+]
+
+OptionalHeaderType = typing.Optional[HeaderType]
 
 
 # Our type hint for a data source:

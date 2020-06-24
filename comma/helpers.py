@@ -3,7 +3,8 @@ import csv
 import io
 import os
 import typing
-import urllib, urllib.parse
+import urllib
+import urllib.parse
 import zipfile
 
 try:

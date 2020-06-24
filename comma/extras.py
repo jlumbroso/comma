@@ -1,11 +1,7 @@
+
 import codecs
-import collections
 import csv
-import io
-import os
-import pathlib
-import urllib, urllib.parse
-import zipfile
+import typing
 
 import comma.helpers
 
@@ -14,8 +10,8 @@ __author__ = ("Jérémie Lumbroso <lumbroso@cs.princeton.edu>")
 
 __all__ = [
     "detect_csv_type",
-    "detect_encoding",
     "is_binary_string",
+    "detect_encoding",
 ]
 
 
@@ -25,7 +21,10 @@ DEFAULT_DELIMITER = u","
 # Better CSV dialect detection, thanks to clevercsv
 
 # define a helper based on the standard CSV package
-def _default_detect_csv_type(sample, delimiters=None):
+def _default_detect_csv_type(
+    sample: typing.AnyStr,
+    delimiters: typing.Optional[typing.Iterable[typing.AnyStr]] = None
+):
     """
     Returns a dictionary containing meta-data on a CSV file, such as
     the format "dialect", whether the file is likely to have a header
@@ -62,7 +61,10 @@ detect_csv_type = _default_detect_csv_type
 try:
     import clevercsv
     
-    def detect_csv_type(sample, delimiters=None):
+    def detect_csv_type(
+        sample: typing.AnyStr,
+        delimiters: typing.Optional[typing.Iterable[typing.AnyStr]] = None
+    ):
         """
         Returns a dictionary containing meta-data on a CSV file, such as
         the format "dialect", whether the file is likely to have a header
@@ -109,7 +111,11 @@ except ImportError:  # pragma: no cover
 TEXT_CHARS = bytearray({7,8,9,10,12,13,27} | set(range(0x20, 0x100)) - {0x7f})
 
 
-def _is_binary_string_internal(bytestring):
+def _is_binary_string_internal(bytestring: typing.AnyStr) -> bool:
+    """
+    Detect, using heuristics, whether a string of bytes is text or binary data.
+    If available, this will use the `binaryornot` lightweight package.
+    """
     try:
         # PY 3 version
         return bool(bytestring.translate(None, TEXT_CHARS))
@@ -132,7 +138,7 @@ except ImportError:  # pragma: no cover
     binaryornot = None
 
 
-def is_binary_string(bytestring, truncate=True):
+def is_binary_string(bytestring: typing.AnyStr, truncate: bool = True) -> bool:
     """
     Detect, using heuristics, whether a string of bytes is text or binary data.
     If available, this will use the `binaryornot` lightweight package.
@@ -140,8 +146,7 @@ def is_binary_string(bytestring, truncate=True):
     
     if bytestring is None:
         return False
-    
-    bytestring_length = -1
+
     try:
         bytestring_length = len(bytestring)
         
@@ -169,9 +174,14 @@ _null2 = _null * 2
 _null3 = _null * 3
 
 
-def _detect_encoding_by_bom(sample, default=None):
+def _detect_encoding_by_bom(
+    sample: typing.AnyStr,
+    default: typing.Optional[str] = None
+) -> typing.Optional[str]:
     """
-    :rtype: str
+    Detects the encoding of a `sample` string, among various Unicode
+    variants, by looking at the BOM (Byte Order Mark) as defined in
+    the `codecs` module.
     """
 
     # JSON always starts with two ASCII characters, so detection is as
@@ -217,7 +227,27 @@ detect_encoding = _detect_encoding_by_bom
 try:
     import chardet
     
-    def detect_encoding(sample, default="utf-8"):
+    def detect_encoding(
+        sample: typing.AnyStr,
+        default: typing.Optional[str] = "utf-8"
+    ) -> typing.Optional[str]:
+        """
+        Detects the encoding of a `sample` string, using the following
+        heuristics in this sequential order:
+
+        1. Check to see if we can find a BOM (Byte Order Mark) that may
+        suggest one variant of Unicode as an encoding. The BOMs are
+        defined in the `codecs` standard module.
+
+        2. If unsuccessful, and if `chardet` is available, use `chardet`
+        to statistically determine the most likely encoding based on the
+        composition of the `sample` (the longer the sample, the more
+        reliable this method).
+
+        3. If unsuccessful, return the value of the `default` parameter;
+        this will be `"utf-8"` if unchanged.
+        """
+
         # First try a fool-proof deterministic method
         encoding = _detect_encoding_by_bom(sample)
         if encoding is not None:

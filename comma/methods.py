@@ -23,6 +23,8 @@ __all__ = [
 
 
 # Our type hint for a tabular type
+# NOTE: Because of the reference to CommaTable, must be here rather
+# than in comma.typing because otherwise will cause circular import
 
 TableType = typing.Union[
     # either one of our CommaTables
@@ -98,7 +100,7 @@ def load(
 # noinspection PyProtectedMember
 def dumps(
     records: TableType,
-    header: typing.Optional[typing.Iterable[typing.Any]] = None,
+    header: comma.typing.OptionalHeaderType = None,
     dialect: typing.Optional[csv.Dialect] = None,
 ) -> str:
     """
@@ -159,6 +161,8 @@ def dumps(
 
     if header is None:
         header = existing_header
+    else:
+        header = list(header)
 
     if dialect is None:
         dialect = comma.helpers.DefaultDialect()
@@ -222,7 +226,7 @@ def dump(
     records: TableType,
     filename: typing.Optional[str] = None,
     fp: typing.Optional[typing.IO] = None,
-    header: typing.Optional[typing.Iterable[typing.Any]] = None,
+    header: comma.typing.OptionalHeaderType = None,
     dialect: typing.Optional[csv.Dialect] = None,
     no_echo: bool = False,
 ) -> typing.Optional[str]:

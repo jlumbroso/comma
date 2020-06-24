@@ -7,6 +7,7 @@ __all__ = [
     "CommaOrphanRowException",
     "CommaOrphanTableException",
     "CommaNoHeaderException",
+    "CommaInvalidHeaderException",
     "CommaKeyError",
     "CommaBatchException",
 ]
@@ -45,6 +46,14 @@ class CommaOrphanTableException(CommaOrphanException):
 class CommaNoHeaderException(CommaException, KeyError):
     """
     A header was expected (or necessary to an operation) but was not found.
+    """
+    pass
+
+
+class CommaInvalidHeaderException(CommaException, TypeError):
+    """
+    The value for a header is not of the right type: It appears not to be
+    a list/iterable of strings (column names).
     """
     pass
 
