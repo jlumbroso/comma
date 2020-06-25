@@ -32,6 +32,10 @@ class TestCommaFile:
         assert comma_file_with_header._header is None
         assert comma_file_with_header.header is None
 
+    def test_header_non_iterable(self, mocker):
+        with pytest.raises(comma.exceptions.CommaInvalidHeaderException):
+            comma.classes.file.CommaFile(header=mocker.Mock())
+
     def test_primary_key_with_no_header(self, comma_file):
         """
 
