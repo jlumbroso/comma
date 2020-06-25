@@ -34,6 +34,8 @@ __all__ = [
     "open_stream",
     "open_csv",
 
+    "validate_header",
+
     "multislice_sequence",
     "multislice_range",
     "multislice_index",
@@ -501,6 +503,47 @@ def open_csv(
     return data
 
 
+def validate_header(value: typing.Any) -> typing.List[str]:
+    """
+    Checks that a value is an iterable of string-like values. And converts
+    to a list of strings. This is to verify user-specified header values.
+    """
+    # verify the value is a list (or can be converted to one if,
+    # say, an iterator)
+
+    import comma.exceptions
+
+    if value is None:
+        raise comma.exceptions.CommaInvalidHeaderException(
+            "the header that is being validated is `None`; this is not a "
+            "valid header, though perhaps a signal to unset a variable"
+        )
+
+    try:
+        header_as_list = list(value)
+    except TypeError as e:
+        raise comma.exceptions.CommaInvalidHeaderException(
+            "type error arose as validating specified header") from e
+
+    # check individual fields
+
+    for subval in header_as_list:
+        if subval is None:
+            raise comma.exceptions.CommaInvalidHeaderException(
+                ("attempting to set a header with invalid `None` field name"
+                 "\nfull header: {header}").format(header=header_as_list))
+
+        if not comma.helpers.is_anystr(subval):
+            raise comma.exceptions.CommaInvalidHeaderException(
+                ("attempting to set a header with invalid field name `{field}`"
+                 "\nfull header: {header}").format(
+                    field=subval,
+                    header=header_as_list))
+
+    header_as_list = list(map(str, header_as_list))
+
+    return header_as_list
+
 def multislice_sequence(
     sequence: typing.Sequence[typing.Any],
     slice_list: typing.List[slice] = None,
@@ -524,6 +567,7 @@ def multislice_range(size: int, slice_list: typing.List[slice] = None) -> range:
     slicing operations on the range [0, size). This makes it easier to
     recover the original index.
     """
+    # noinspection PyArgumentList
     return typing.cast(
         typ=range,
         val=comma.helpers.multislice_sequence(range(size), slice_list=slice_list))

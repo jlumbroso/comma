@@ -30,31 +30,31 @@ class TestCommaTable:
         obj._parent = mocker.Mock(header=self.SOME_HEADER)
         return obj
 
-    def test_header_parent_none(self, comma_table):
-        """
-
-        """
-
-        # check premise
-        assert comma_table._parent is None
-        assert not comma_table.has_header
-
-        with pytest.raises(comma.exceptions.CommaOrphanTableException):
-            val = comma_table.header
-            assert val is not None
-
-    def test_header_parent_header_none(self, comma_table_data_header_none, mocker):
-        """
-
-        """
-
-        # check premise
-        assert comma_table_data_header_none._parent is not None
-        assert not comma_table_data_header_none.has_header
-
-        with pytest.raises(comma.exceptions.CommaNoHeaderException):
-            val = comma_table_data_header_none.header
-            assert val is not None
+    # def test_header_parent_none(self, comma_table):
+    #     """
+    #
+    #     """
+    #
+    #     # check premise
+    #     assert comma_table._parent is None
+    #     assert not comma_table.has_header
+    #
+    #     with pytest.raises(comma.exceptions.CommaOrphanTableException):
+    #         val = comma_table.header
+    #         assert val is not None
+    #
+    # def test_header_parent_header_none(self, comma_table_data_header_none, mocker):
+    #     """
+    #
+    #     """
+    #
+    #     # check premise
+    #     assert comma_table_data_header_none._parent is not None
+    #     assert not comma_table_data_header_none.has_header
+    #
+    #     with pytest.raises(comma.exceptions.CommaNoHeaderException):
+    #         val = comma_table_data_header_none.header
+    #         assert val is not None
 
     def test_repr_html(self, comma_table):
         assert comma_table._repr_html_() is not None

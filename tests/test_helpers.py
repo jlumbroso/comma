@@ -11,6 +11,7 @@ except ImportError:
     # this is an optional package
     requests = None
 
+import comma.exceptions
 import comma.helpers
 import comma.typing
 
@@ -564,6 +565,38 @@ class TestOpenCSV:
         comma.helpers.open_csv(source=mock_stream)
 
         mock_stream.close.assert_not_called()
+
+
+class TestValidateHeader:
+    """
+    Tests for the `comma.helpers.validate_header()` helper method, which
+    checks that a value is an iterable of string-like values, and normalizes
+    to a list of strings. This is to validate user-specified values when
+    setting the headers of a table object.
+    """
+
+    SOME_HEADER = ["a", "b", "c"]
+
+    SOME_BAD_HEADERS = [
+        None,
+        ["a", "b", None],
+        ["a", "b", 1.22],
+    ]
+
+    def test_validate_header_success(self):
+        assert comma.helpers.validate_header(self.SOME_HEADER) == self.SOME_HEADER
+
+    def test_validate_header_success_iter(self):
+        assert sorted(comma.helpers.validate_header(self.SOME_HEADER)) == list(sorted(self.SOME_HEADER))
+
+    @pytest.mark.parametrize("bad_header", SOME_BAD_HEADERS)
+    def test_validate_header_exception(self, bad_header):
+        with pytest.raises(comma.exceptions.CommaInvalidHeaderException):
+            comma.helpers.validate_header(bad_header)
+
+    def test_validate_header_exception_with_mock(self, mocker):
+        with pytest.raises(comma.exceptions.CommaInvalidHeaderException):
+            comma.helpers.validate_header(mocker.Mock())
 
 
 class TestMultislice:

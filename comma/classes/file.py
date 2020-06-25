@@ -87,35 +87,13 @@ class CommaFile(object):
             self._header = None
             return
 
-        # verify the value is a list (or can be converted to one if,
-        # say, an iterator)
-
-        try:
-            header_as_list = list(value)
-        except TypeError as e:
-            raise comma.exceptions.CommaInvalidHeaderException(
-                "type error arose as changing header") from e
-
-        # check individual fields
-
-        for subval in header_as_list:
-            if subval is None:
-                raise comma.exceptions.CommaInvalidHeaderException(
-                    ("attempting to set a header with invalid `None` field name"
-                     "\nfull header: {header}").format(header=header_as_list))
-
-            if not comma.helpers.is_anystr(subval):
-                raise comma.exceptions.CommaInvalidHeaderException(
-                    ("attempting to set a header with invalid field name `{field}`"
-                     "\nfull header: {header}").format(
-                        field=subval,
-                        header=header_as_list))
+        validated_header = comma.helpers.validate_header(value)
 
         # if we are replacing an existing header, check length
 
         if self._header is not None:
             old_length = len(self._header)
-            new_length = len(header_as_list)
+            new_length = len(validated_header)
 
             if old_length != new_length:
                 warnings.warn(
@@ -123,7 +101,7 @@ class CommaFile(object):
                         old=old_length,
                         new=new_length))
 
-        self._header = header_as_list
+        self._header = validated_header
 
     @header.deleter
     def header(self):
