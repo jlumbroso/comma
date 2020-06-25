@@ -1,3 +1,4 @@
+
 import collections
 
 import comma.abstract
@@ -5,6 +6,7 @@ import comma.classes.slices
 import comma.exceptions
 import comma.helpers
 import comma.methods
+
 
 __author__ = "Jérémie Lumbroso <lumbroso@cs.princeton.edu>"
 

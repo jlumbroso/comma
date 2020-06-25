@@ -153,12 +153,16 @@ class TestLoad:
         assert comma.methods.dump(obj_manual) == comma.methods.dump(obj_comma)
 
     def test_dump_from_raw_data_with_dialect_choice(self):
+        target_dialect = comma.helpers.DefaultDialect()
+
         obj_manual = copy.deepcopy(SOME_CSV_DATA)
-        assert comma.methods.dump(obj_manual, dialect=comma.helpers.DefaultDialect()) == SOME_CSV_STRING
+        str_manual = comma.methods.dump(obj_manual, dialect=target_dialect)
+        assert str_manual == SOME_CSV_STRING
 
         # checking that the manual computation makes sense
         obj_comma = comma.methods.load(SOME_CSV_STRING)
-        assert comma.methods.dump(obj_manual) == comma.methods.dump(obj_comma)
+        str_comma = comma.methods.dump(obj_comma, dialect=target_dialect)
+        assert str_manual == str_comma
 
     def test_dump_with_added_headers(self):
 
