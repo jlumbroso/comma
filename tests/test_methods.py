@@ -5,6 +5,8 @@ import typing
 
 import pytest
 
+import comma.exceptions
+import comma.helpers
 import comma.methods
 import comma.typing
 
@@ -71,6 +73,12 @@ class TestLoad:
 
         obj = comma.methods.load(source)
         assert comma.methods.dump(list(obj)) == SOME_CSV_STRING
+
+    def test_dump_from_invalid_records(self, mocker):
+        invalid_records = mocker.Mock()
+        invalid_records = typing.cast(comma.methods.TableType, invalid_records)
+        with pytest.raises(comma.exceptions.CommaException):
+            comma.methods.dumps(invalid_records)
 
     @pytest.mark.parametrize("source", [SOME_CSV_STRING,
                                         io.StringIO(SOME_CSV_STRING)])
@@ -139,6 +147,14 @@ class TestLoad:
     def test_dump_from_raw_data(self, no_echo):
         obj_manual = copy.deepcopy(SOME_CSV_DATA)
         assert comma.methods.dump(obj_manual, no_echo=no_echo) == SOME_CSV_STRING
+
+        # checking that the manual computation makes sense
+        obj_comma = comma.methods.load(SOME_CSV_STRING)
+        assert comma.methods.dump(obj_manual) == comma.methods.dump(obj_comma)
+
+    def test_dump_from_raw_data_with_dialect_choice(self):
+        obj_manual = copy.deepcopy(SOME_CSV_DATA)
+        assert comma.methods.dump(obj_manual, dialect=comma.helpers.DefaultDialect()) == SOME_CSV_STRING
 
         # checking that the manual computation makes sense
         obj_comma = comma.methods.load(SOME_CSV_STRING)

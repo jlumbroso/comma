@@ -6,6 +6,7 @@ import typing
 import comma.classes.file
 import comma.classes.row
 import comma.classes.table
+import comma.exceptions
 import comma.helpers
 import comma.typing
 
@@ -142,6 +143,13 @@ def dumps(
                 and hasattr(records[0], "_parent")
                 and isinstance(records[0]._parent, klass_cf)):
             parent = records[0]._parent
+
+    else:
+        # not a `CommaTable`, and not iterable
+        raise comma.exceptions.CommaException(
+            "the `records` provided to the `dumps()` method do not appear "
+            "to be a valid `TableType` object"
+        )
 
     # ==============================================================================
 
