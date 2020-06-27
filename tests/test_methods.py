@@ -5,6 +5,7 @@ import typing
 
 import pytest
 
+import comma.classes
 import comma.exceptions
 import comma.helpers
 import comma.methods
@@ -18,6 +19,8 @@ SOME_CSV_STRING_NO_HEADER = "\n".join(SOME_CSV_STRING.split("\n")[1:])
 SOME_CSV_STRING_HAS_HEADER = True
 SOME_CSV_STRING_ROW_COUNT = 2
 SOME_CSV_STRING_COL_COUNT = 3
+
+SOME_EMPTY_STR = ""
 
 SOME_HEADER = SOME_CSV_STRING.split("\n")[0]
 SOME_OTHER_HEADER = "nom,age,genre"
@@ -51,6 +54,14 @@ class TestLoad:
         assert (len(obj) == SOME_CSV_STRING_ROW_COUNT)
         assert ((obj.header is not None) == SOME_CSV_STRING_HAS_HEADER)
         assert (len(obj.header) == SOME_CSV_STRING_COL_COUNT)
+
+
+class TestDump:
+
+    def test_dump_empty(self):
+
+        obj_empty = comma.classes.CommaTable([])
+        assert obj_empty.dump() == SOME_EMPTY_STR
 
     @pytest.mark.parametrize("source", [SOME_CSV_STRING,
                                         io.StringIO(SOME_CSV_STRING)])

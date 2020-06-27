@@ -64,6 +64,11 @@ class CommaKeyError(CommaException, KeyError):
     """
     pass
 
+class CommaPrimaryKeyMissing(CommaKeyError):
+    """
+    A row has been found that does not contain the specified primary key.
+    """
+    pass
 
 class CommaBatchException(CommaException):
     """

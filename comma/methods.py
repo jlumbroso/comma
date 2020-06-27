@@ -161,6 +161,9 @@ def dumps(
         pass
     except TypeError:
         pass
+    except IndexError:
+        # records may be empty
+        pass
 
     if parent is not None:
         existing_header = parent.header
