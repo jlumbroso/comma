@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "comma"
-version = "0.1.3"
+version = "0.1.4"
 description = "Python CSV, and delimiter-spaced files, for humans!"
 authors = ["Jérémie Lumbroso <lumbroso@cs.princeton.edu>"]
 license = "LGPL-3.0-or-later"
