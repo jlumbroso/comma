@@ -73,6 +73,10 @@ class TestCommaTable:
         return reconstituted_csv_matrix
 
     def test_comma_table_local_header_internal(self, comma_table):
+        """
+        Checks whether `CommaTable().header` properly detects a header that is
+        locally set (as opposed to provide from a `CommaFile`)..
+        """
         assert comma_table._parent is None
         assert comma_table._local_header is None
         assert comma_table.header is None
@@ -85,6 +89,10 @@ class TestCommaTable:
         assert comma_table.header == self.SOME_HEADER
 
     def test_comma_table_local_header_external(self, comma_table):
+        """
+        Checks whether `CommaTable().header` properly detects a header
+        provided by the parent `CommaFile` object.
+        """
         assert comma_table._parent is None
         assert comma_table._local_header is None
         assert comma_table.header is None
@@ -105,6 +113,10 @@ class TestCommaTable:
         del comma_table.header
 
     def test_comma_table_parent_header_delete(self, comma_table_data_header):
+        """
+        Checks whether the `CommaTable().header` attribute can be modified
+        when it is sourced from the parent `CommaFile`.
+        """
         assert comma_table_data_header._parent is not None
         assert comma_table_data_header._parent.header is not None
 
@@ -122,6 +134,11 @@ class TestCommaTable:
         assert comma_table_data_header.header == self.SOME_HEADER
 
     def test_comma_table_local_header_size_change(self, comma_table, mocker):
+        """
+        Checks whether a warning is emitted when the size of the `header`
+        is changed (this means that the expected number of fields will
+        have changed without the data having changed).
+        """
         mock_warn = mocker.patch("warnings.warn")
 
         comma_table.header = copy.deepcopy(self.SOME_HEADER)
@@ -131,6 +148,11 @@ class TestCommaTable:
         mock_warn.assert_called_once()
 
     def test_comma_dump(self, comma_table, mocker):
+        """
+        Checks that the `CommaTable().dump()` method makes a call to the
+        (separately tested/validated) `comma.methods.dump()`, and that it
+        propagates the right parameters.
+        """
 
         # check that an empty table is serialized to the empty string
         assert comma_table.dump() == self.SOME_EMPTY_STRING
@@ -146,6 +168,11 @@ class TestCommaTable:
             comma_table, filename=mock_filename, fp=mock_io)
 
     def test_primary_key_no_parent(self, comma_table):
+        """
+        Checks that the right exceptions are raised if the user tries
+        to manipulate the `primary_key` without having first defined
+        a `header`.
+        """
 
         assert comma_table._parent is None
         assert comma_table._local_primary_key is None
@@ -171,7 +198,9 @@ class TestCommaTable:
         comma_table.primary_key = self.SOME_HEADER[0]
 
     def test_primary_key_with_parent(self, comma_table_data_header):
-
+        """
+        Checks
+        """
         assert comma_table_data_header._parent is not None
         assert comma_table_data_header._parent.header is not None
         assert comma_table_data_header._parent.primary_key is None
@@ -179,9 +208,19 @@ class TestCommaTable:
         assert comma_table_data_header.primary_key is None
         assert comma_table_data_header.header == self.SOME_HEADER
 
-        comma_table_data_header.primary_key = self.SOME_HEADER[0]
+        pk = self.SOME_HEADER[0]
+        comma_table_data_header.primary_key = pk
+
+        # the change is made directly to the parent
+        assert comma_table_data_header._parent.primary_key == pk
+        assert comma_table_data_header._local_primary_key is None
+        assert comma_table_data_header.primary_key == pk
 
     def test_real_comma_table(self, real_comma_table, real_csv_data):
+        """
+        Validates that the `real_comma_table` pytest fixture contains the
+        expected data.
+        """
         reconstituted_header_fields = real_csv_data[0]
 
         assert real_comma_table.header is not None
@@ -195,6 +234,10 @@ class TestCommaTable:
         assert real_comma_table._primary_key_dict is None
 
     def test_real_primary_key_table(self, real_comma_table):
+        """
+        Checks that the setter for the `primary_key` property is
+        properly able to change the underlying data.
+        """
         assert real_comma_table._primary_key_dict is None
 
         real_comma_table.primary_key = real_comma_table.header[0]
@@ -208,7 +251,10 @@ class TestCommaTable:
         assert real_comma_table._primary_key_dict is not None
 
     def test_real_primary_key_table_missing_fields(self, real_comma_table_missing_fields, mocker):
-
+        """
+        Checks whether `CommaTable()._update_primary_key_dict()`, a protected
+        member
+        """
         mock_warn = mocker.patch("warnings.warn")
 
         assert real_comma_table_missing_fields._primary_key_dict is None
@@ -223,6 +269,9 @@ class TestCommaTable:
         assert mock_warn.call_count == 2
 
     def test_real_pk_access(self, real_comma_table, real_csv_data):
+        """
+
+        """
         example_csv_header = real_csv_data[0]
 
         for header_index in range(len(example_csv_header)):
@@ -234,6 +283,9 @@ class TestCommaTable:
                 assert real_comma_table[key] == row
 
     def test_real_pk_access_comma_key_error(self, real_comma_table):
+        """
+
+        """
         with pytest.raises(comma.exceptions.CommaKeyError):
             real_comma_table[self.SOME_STRING]
 
