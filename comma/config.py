@@ -197,10 +197,17 @@ class ConfigClass(metaclass=ConfigMetaclass):
     design choices of the library.
     """
 
-    SLICE_COPY = True, """
+    SLICE_DEEP_COPY_DATA = False, """
         Determines whether the slice of a `CommaTable` or `CommaRow` copies
         the underlying data or not. (Python convention suggests a slice should
         make a copy, however it may useful to circumvent this for convenience.)
+        """
+
+    SLICE_DEEP_COPY_PARENT = False, """
+        Determines whether the slice of a `CommaTable` or `CommaRow` copies
+        the reference to the parent `CommaFile` or duplicates the object. This
+        affects whether changes to the header are propagated from the slice to
+        the original dataset or not.
         """
 
 

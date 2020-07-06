@@ -105,7 +105,13 @@ class TestConfig:
 
     def test_misc(self):
         obj = comma.config.ConfigClass()
-        obj.SLICE_COPY = True
-        assert obj.SLICE_COPY
-        obj.SLICE_COPY = False
-        assert not obj.SLICE_COPY
+
+        obj.SLICE_DEEP_COPY_DATA = True
+        assert obj.SLICE_DEEP_COPY_DATA
+        obj.SLICE_DEEP_COPY_DATA = False
+        assert not obj.SLICE_DEEP_COPY_DATA
+
+        obj.SLICE_DEEP_COPY_PARENT = True
+        assert obj.SLICE_DEEP_COPY_PARENT
+        obj.SLICE_DEEP_COPY_PARENT = False
+        assert not obj.SLICE_DEEP_COPY_PARENT

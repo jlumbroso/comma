@@ -5,6 +5,7 @@ import warnings
 
 import comma.abstract
 import comma.classes.slices
+import comma.config
 import comma.exceptions
 import comma.helpers
 import comma.methods
@@ -60,7 +61,7 @@ class CommaTable(collections.UserList, list, collections.UserDict, comma.abstrac
     # local primary key
     _local_primary_key = None
 
-    #
+    # local cache for lookups { primary key value -> row number }
     _primary_key_dict = None
 
     def __init__(
@@ -126,7 +127,7 @@ class CommaTable(collections.UserList, list, collections.UserDict, comma.abstrac
     def has_header(self):
         """
         Checks whether the `CommaTable` has a header as provided in
-        the data source.
+        the data source, or as later provided by the user.
         """
         return ((not (self._parent is None) and not (self._parent.header is None)) or
                 (not (self._local_header is None)))
@@ -134,12 +135,16 @@ class CommaTable(collections.UserList, list, collections.UserDict, comma.abstrac
     @property
     def header(self):
         """
-        If the data source had a header, it will be provided in
-        this property. Currently it is not possible to set, but this
-        is quickly forthcoming.
+        Property providing a header with column names for the columns of
+        the data stored by this `CommaTable` object. The header may come
+        either from the parent `CommaFile` object (and is sourced from the
+        original data source), or can be user-provided, for instance by
+        setting this property.
         """
 
-        if self._parent is not None:
+        # if `CommaTable` is linked to a valid `CommaFile`, redirect
+        # to that property, unless overridden
+        if self._local_header is None and self._parent is not None:
             return self._parent.header
 
         return self._local_header
@@ -157,7 +162,6 @@ class CommaTable(collections.UserList, list, collections.UserDict, comma.abstrac
     def header(self, value):
 
         # equivalent to a delete
-
         if value is None:
             # redirect to that logic
             del self.header
@@ -210,7 +214,9 @@ class CommaTable(collections.UserList, list, collections.UserDict, comma.abstrac
     @property
     def primary_key(self):
         """
-
+        Property controlling whether the `CommaTable` is indexed by one of its
+        columns. This allows for using a column, for instance `username` or
+        `userid` or `email`, as a primary key for the rows of the `CommaTable`.
         """
 
         if self._parent is not None:
@@ -261,9 +267,7 @@ class CommaTable(collections.UserList, list, collections.UserDict, comma.abstrac
 
     @primary_key.setter
     def primary_key(self, value):
-        """
 
-        """
         # check if there are headers
         if not self.has_header:
             raise comma.exceptions.CommaNoHeaderException(
@@ -320,15 +324,17 @@ class CommaTable(collections.UserList, list, collections.UserDict, comma.abstrac
         if type(key) is slice:
             return self.clone(newdata=self.data[key])
 
-        # field-slice, i.e. csv_table["street"]
+        # field-slice or primary-key-query
         if type(key) is str:
 
+            # field-slice, i.e. csv_table["street"]
             if key in self.header:
                 return comma.classes.slices.CommaFieldSlice(
                     initlist=self,
                     parent=self._parent,
                     field_name=key)
 
+            # primary key query, i.e., csv_table["someperson@marcopolo.me"]
             else:
                 if self.primary_key is not None:
                     self._update_primary_key_dict()
