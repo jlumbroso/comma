@@ -15,7 +15,7 @@ def get_pyproject_version() -> str:
     """
     comma_init_filepath = comma.__file__
     comma_root_dir = os.path.abspath(
-        os.path.join(os.path.dirname(comma.__file__), ".."))
+        os.path.join(os.path.dirname(comma_init_filepath), ".."))
 
     pyproject_path = os.path.join(comma_root_dir, POETRY_FILE)
 

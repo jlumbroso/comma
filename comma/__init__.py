@@ -9,6 +9,8 @@ __author__ = "Jérémie Lumbroso <lumbroso@cs.princeton.edu>"
 
 from comma.methods import load
 from comma.methods import dump, dumps
+from comma.config import settings as settings
+
 
 import warnings
 warnings.warn(
