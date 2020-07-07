@@ -40,10 +40,10 @@ jobs:
 
       - name: Commit generated requirements.txt
         uses: EndBug/add-and-commit@v4
-          with:
-            message: "Commit updated requirements.txt for dependency graph"
-            add: "requirements.txt"
-            cwd: "."
-            force: true
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          message: "Commit updated requirements.txt for dependency graph"
+          add: "requirements.txt"
+          cwd: "."
+          force: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
