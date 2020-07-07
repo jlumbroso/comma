@@ -95,7 +95,12 @@ class TestCommaRow:
     def test_repr_without_header(self, comma_row_no_header):
         assert comma_row_no_header.__repr__() != ""
 
-    def test_deepcopy(self, comma_row, mocker, subtests):
+    def test_deepcopy_memoization(self, comma_row, mocker, subtests):
+        """
+        Checks whether the memoization mechanism to avoid recursive infinite
+        calls is properly implemented in `CommaRow.__deepcopy__()`.
+        """
+
         # get the memory address of the object we are about to copy
         obj_id = id(comma_row)
 

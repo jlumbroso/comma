@@ -90,6 +90,8 @@ class CommaFile(object):
         validated_header = comma.helpers.validate_header(value)
 
         # if we are replacing an existing header, check length
+        # NOTE: should this be part of local `validate_header()`?
+        # NOTE: should validation check length of headers?
 
         if self._header is not None:
             old_length = len(self._header)

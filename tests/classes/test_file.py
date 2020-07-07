@@ -123,6 +123,20 @@ class TestCommaFile:
     #     with pytest.raises(NotImplementedError):
     #         comma_file.header = self.SOME_HEADER
 
+    def test_header_change_from_none(self, comma_file):
+        """
+        Checks to see whether the `header.setter()` correctly handles the
+        situation where a header is set that previously was not set.
+        """
+        assert comma_file.header is None
+        assert comma_file._header is None
+
+        # make the change through the setter
+        comma_file.header = self.SOME_HEADER
+
+        assert comma_file.header is not None
+        assert comma_file._header is not None
+
     def test_header_change_iterator(self, comma_file_with_header):
         new_headers_iterator = reversed(comma_file_with_header.header[:])
         new_headers_list = list(reversed(comma_file_with_header.header[:]))
