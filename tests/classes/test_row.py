@@ -95,3 +95,20 @@ class TestCommaRow:
     def test_repr_without_header(self, comma_row_no_header):
         assert comma_row_no_header.__repr__() != ""
 
+    def test_deepcopy(self, comma_row, mocker, subtests):
+        # get the memory address of the object we are about to copy
+        obj_id = id(comma_row)
+
+        # create mock object that will be returned by memoization
+        mock_obj = mocker.Mock()
+
+        # create mock memoization dictionary
+        memodict = {obj_id: mock_obj}
+
+        with subtests.test("memoization hit"):
+            # check returned object is memoized object
+            assert mock_obj == comma_row.__deepcopy__(memodict=memodict)
+
+        with subtests.test("memoization miss"):
+            # check that is not the case with different memoization dictionary
+            assert mock_obj != comma_row.__deepcopy__(memodict=dict())

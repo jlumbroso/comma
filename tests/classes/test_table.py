@@ -141,9 +141,15 @@ class TestCommaTable:
         """
         mock_warn = mocker.patch("warnings.warn")
 
+        # first time there is no cache to compare to
         comma_table.header = copy.deepcopy(self.SOME_HEADER)
         mock_warn.assert_not_called()
 
+        # second time will change the header to something of the same size
+        comma_table.header = copy.deepcopy(self.SOME_HEADER)
+        mock_warn.assert_not_called()
+
+        # second time will change the header to something of different size
         comma_table.header = copy.deepcopy(self.SOME_HEADER) * 2
         mock_warn.assert_called_once()
 
@@ -440,6 +446,21 @@ class TestCommaTable:
                 assert real_comma_table[i][first_header] != original_values[i]
                 assert real_comma_table[i][first_header] == self.SOME_STRING
 
+    def test_fails_on_bad_type_key(self, comma_table):
+        """
+        Checks whether a `comma.exceptions.CommaKeyError` exception is raised
+        when a `CommaTable` is provided with a key of the incorrect type (not
+        `int`, `slice` or `str`) or of an `str` type but neither referencing
+        a column name nor a row identified by primary key.
+        """
+        # invalid type of key
+        with pytest.raises(comma.exceptions.CommaKeyError):
+            comma_table.__getitem__(1.0)
+
+        # invalid key of right type (str)
+        some_invalid_str_key = self.SOME_STRING * 2
+        with pytest.raises(comma.exceptions.CommaKeyError):
+            comma_table.__getitem__(some_invalid_str_key)
 
 
     # def test_header_parent_none(self, comma_table):

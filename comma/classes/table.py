@@ -345,7 +345,7 @@ class CommaTable(collections.UserList, list, collections.UserDict, comma.abstrac
         if type(key) is str:
 
             # field-slice, i.e. csv_table["street"]
-            if key in self.header:
+            if self.header is not None and key in self.header:
 
                 data_subset = self.data[:]
                 if comma.config.settings.SLICE_DEEP_COPY_DATA:
@@ -357,15 +357,14 @@ class CommaTable(collections.UserList, list, collections.UserDict, comma.abstrac
                     field_name=key)
 
             # primary key query, i.e., csv_table["someperson@marcopolo.me"]
-            else:
-                if self.primary_key is not None:
-                    self._update_primary_key_dict()
-                    id_of_key_row = self._primary_key_dict.get(key)
-                    if id_of_key_row is not None:
-                        # recursive call, but change of type
-                        return self.__getitem__(id_of_key_row)
-                    raise comma.exceptions.CommaKeyError(
-                        "no record with that primary key: '{}'".format(key))
+            elif self.primary_key is not None:
+                self._update_primary_key_dict()
+                id_of_key_row = self._primary_key_dict.get(key)
+                if id_of_key_row is not None:
+                    # recursive call, but change of type
+                    return self.__getitem__(id_of_key_row)
+                raise comma.exceptions.CommaKeyError(
+                    "no record with that primary key: '{}'".format(key))
 
         raise comma.exceptions.CommaKeyError("invalid key")
 
