@@ -1,0 +1,49 @@
+
+# GitHub Actions workflow to generate a requirements.txt, for all the
+# automatic processing that GitHub does, from a Poetry setup file, and
+# commit the requirements.txt to the repo
+#
+# Author: lumbroso@cs.princeton.edu
+# See GitHub documentation: https://git.io/JJL7O
+
+name: "Update dependency file"
+
+on:
+  push:
+    paths:
+      - 'pyproject.*'
+      - 'poetry.lock'
+
+jobs:
+  dependency-update:
+    name: dependency-update
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checking out latest version of master branch
+        uses: actions/checkout@master
+
+      - name: Setup Python & Poetry and install project with extras
+        uses: abatilo/actions-poetry@v1.5.0
+        with:
+          python_version: 3.8.0
+          poetry_version: 1.0
+          working_directory: "."  # optional, defaults to ".'
+          args: install -E 'autodetect net'
+
+      - name: Generate requirements.txt (should include extras)
+        uses: abatilo/actions-poetry@v1.5.0
+        with:
+          python_version: 3.8.0
+          poetry_version: 1.0
+          working_directory: "."
+          args: export -f requirements.txt > requirements.txt
+
+      - name: Commit generated requirements.txt
+        uses: EndBug/add-and-commit@v4
+          with:
+            message: "Commit updated requirements.txt for dependency graph"
+            add: "requirements.txt"
+            cwd: "."
+            force: true
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
