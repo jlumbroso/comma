@@ -1,5 +1,6 @@
 import collections
 import collections.abc
+import copy
 import typing
 
 import comma.classes.file
@@ -47,6 +48,19 @@ class CommaRow(collections.UserList, list, collections.UserDict):
 
         # call base constructor for lists
         ret = super().__init__(initlist, *args, **kwargs)
+
+    def __deepcopy__(self, memodict=None):
+        id_self = id(self)
+        if memodict is not None and id_self in memodict:
+            return memodict.get(id_self)
+        obj = CommaRow(
+            initlist=copy.deepcopy(list(self.__iter__())),
+            parent=copy.deepcopy(self._parent),
+            slice_list=copy.deepcopy(self._slice_list),
+            original=self._original
+        )
+        memodict[id_self] = obj
+        return obj
 
     @property
     def header(self):

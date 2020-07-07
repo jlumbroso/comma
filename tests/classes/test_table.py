@@ -21,7 +21,7 @@ class TestCommaTable:
             "rowAcol1,rowAcol2,rowAcol3\n"
             "rowBcol1,rowBcol2,rowBcol3\n")
 
-    SOME_CSV_STRING_MISSING_FIELDSS = (
+    SOME_CSV_STRING_MISSING_FIELDS = (
         "header1,header2,header3\n"
         "rowAcol1,rowAcol2,rowAcol3\n"
         "BADrowBcol1,BADrowBcol3\n"
@@ -55,7 +55,7 @@ class TestCommaTable:
 
     @pytest.fixture()
     def real_comma_table_missing_fields(self):
-        obj = comma.load(self.SOME_CSV_STRING_MISSING_FIELDSS)
+        obj = comma.load(self.SOME_CSV_STRING_MISSING_FIELDS)
         return obj
 
     @pytest.fixture()
@@ -66,10 +66,10 @@ class TestCommaTable:
         return reconstituted_csv_matrix
 
     @pytest.fixture()
-    def real_csv_data_missing_fieldss(self):
+    def real_csv_data_missing_fields(self):
         reconstituted_csv_matrix = list(map(
             lambda s: s.split(","),
-            self.SOME_CSV_STRING_MISSING_FIELDSS.strip().split("\n")))
+            self.SOME_CSV_STRING_MISSING_FIELDS.strip().split("\n")))
         return reconstituted_csv_matrix
 
     def test_comma_table_local_header_internal(self, comma_table):
@@ -293,6 +293,152 @@ class TestCommaTable:
 
         with pytest.raises(comma.exceptions.CommaKeyError):
             real_comma_table[self.SOME_STRING]
+
+    @pytest.fixture
+    def mock_settings(self, mocker):
+        """
+        Fixture to control the global library settings, for a given test.
+        """
+        mock_settings = mocker.patch("comma.config.settings")
+        return mock_settings
+
+    def test_real_set_item_deep_copy(self, mock_settings, real_comma_table):
+        """
+        Checks that slices are deep copies of the original rows when the
+        corresponding global parameter `SLICE_DEEP_COPY_DATA` is set to
+        `True`.
+        """
+        mock_settings.SLICE_DEEP_COPY_DATA = True
+        mock_settings.SLICE_DEEP_COPY_PARENT = False
+
+        assert len(real_comma_table) >= 1
+        first_row = real_comma_table[0:1][0]
+        assert first_row is not None
+        assert isinstance(first_row, comma.classes.row.CommaRow)
+
+        # field-wise comparison
+        assert first_row[:] == real_comma_table[0][:]
+
+        original_values = []
+        for i in range(len(first_row)):
+            original_values.append(first_row[i])
+            first_row[i] = self.SOME_STRING
+        for i in range(len(first_row)):
+            # here modifications in "first_row" should not
+            # impact the actual original table because of deep
+            # copy
+            assert first_row[i] == self.SOME_STRING
+            assert first_row[i] != real_comma_table[0][i]
+            assert real_comma_table[0][i] == original_values[i]
+
+    def test_real_set_item_shallow_copy(self, mock_settings, real_comma_table):
+        """
+        Checks that slices are shallow when the corresponding parameter is
+        set in that way.
+        """
+        mock_settings.SLICE_DEEP_COPY_DATA = False
+        mock_settings.SLICE_DEEP_COPY_PARENT = False
+
+        assert len(real_comma_table) >= 1
+        first_row = real_comma_table[0:1][0]
+        assert first_row is not None
+        assert isinstance(first_row, comma.classes.row.CommaRow)
+
+        # field-wise comparison
+        assert first_row[:] == real_comma_table[0][:]
+
+        original_values = []
+        for i in range(len(first_row)):
+            original_values.append(first_row[i])
+            first_row[i] = self.SOME_STRING
+        for i in range(len(first_row)):
+            # shallow copy means changes on first_row affect
+            # original table
+            assert first_row[i] == self.SOME_STRING
+            assert first_row[i] == real_comma_table[0][i]
+            assert real_comma_table[0][i] != original_values[i]
+
+    def test_parent_preserved(self, subtests, mock_settings, real_comma_table):
+        """
+        Checks that the parent `CommaFile` reference is preserved between
+        the original `CommaTable` object and slices of that table, if the
+        global setting `SLICE_DEEP_COPY_PARENT` is set to `False`.
+        """
+
+        mock_settings.SLICE_DEEP_COPY_PARENT = False
+
+        with subtests.test("SDCP=False; SDCD=True"):
+            mock_settings.SLICE_DEEP_COPY_DATA = True
+            slice_obj = real_comma_table[:]
+            assert slice_obj._parent == real_comma_table._parent
+
+        with subtests.test("SDCP=False; SDCD=False"):
+            mock_settings.SLICE_DEEP_COPY_DATA = False
+            slice_obj = real_comma_table[:]
+            assert slice_obj._parent == real_comma_table._parent
+
+    def test_parent_cloned(self, subtests, mock_settings, real_comma_table):
+        """
+        Checks that the parent `CommaFile` is a new reference, from a
+        cloned version of the original `CommaTable` object and slices of
+        that table, if the global setting `SLICE_DEEP_COPY_PARENT` is set
+        to `True`.
+        """
+
+        mock_settings.SLICE_DEEP_COPY_PARENT = True
+
+        with subtests.test("SDCP=True; SDCD=True"):
+            mock_settings.SLICE_DEEP_COPY_DATA = True
+            slice_obj = real_comma_table[:]
+            assert slice_obj._parent != real_comma_table._parent
+
+        with subtests.test("SDCP=True; SDCD=False"):
+            mock_settings.SLICE_DEEP_COPY_DATA = False
+            slice_obj = real_comma_table[:]
+            assert slice_obj._parent != real_comma_table._parent
+
+    def test_setitem_field_slice(self, subtests, mock_settings, real_comma_table, real_csv_data):
+
+        # header are the first line (validate assumptions)
+        assert len(real_csv_data) >= 1
+        header = real_csv_data[0]
+        assert len(real_comma_table) >= 1
+        assert len(header) == len(real_comma_table[0])
+
+        first_header = header[0]
+
+        mock_settings.SLICE_DEEP_COPY_PARENT = False
+
+        # here data is copied and so modifications in the fieldslice should
+        # not change the original data
+        with subtests.test("SDCD=True"):
+            mock_settings.SLICE_DEEP_COPY_DATA = True
+            fieldslice = real_comma_table[first_header]
+            assert isinstance(fieldslice, comma.classes.slices.CommaFieldSlice)
+            original_values = []
+            for i in range(len(fieldslice)):
+                original_values.append(fieldslice[i])
+                fieldslice[i] = self.SOME_STRING
+            for i in range(len(fieldslice)):
+                assert real_comma_table[i][first_header] == real_comma_table[first_header][i]
+                assert fieldslice[i] == self.SOME_STRING
+                assert real_comma_table[i][first_header] == original_values[i]
+
+        # now modifications will affect the original data because the
+        # fieldslice uses shallow data
+        with subtests.test("SDCD=False"):
+            mock_settings.SLICE_DEEP_COPY_DATA = False
+            fieldslice = real_comma_table[first_header]
+            assert isinstance(fieldslice, comma.classes.slices.CommaFieldSlice)
+            original_values = []
+            for i in range(len(fieldslice)):
+                original_values.append(fieldslice[i])
+                fieldslice[i] = self.SOME_STRING
+            for i in range(len(fieldslice)):
+                assert real_comma_table[i][first_header] == real_comma_table[first_header][i]
+                assert fieldslice[i] == self.SOME_STRING
+                assert real_comma_table[i][first_header] != original_values[i]
+                assert real_comma_table[i][first_header] == self.SOME_STRING
 
 
 

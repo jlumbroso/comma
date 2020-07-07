@@ -1,5 +1,6 @@
 
 import collections
+import copy
 import typing
 import warnings
 
@@ -315,32 +316,54 @@ class CommaTable(collections.UserList, list, collections.UserDict, comma.abstrac
         if type(key) is int:
             return super().__getitem__(key)
 
-        # if getting a range of rows: Create a new CommaTable to
-        # serve the subset of rows; since the rows will be the
-        # same references, any changes will propagate to the whole
-        # file (unlike when creating a slice, which usually creates
-        # a copy)
+        # if getting a range of rows, create a new CommaTable to
+        # serve the subset of rows.
+
+        # by default, since the rows will be the same references,
+        # any changes will propagate to the whole file (unlike when
+        # creating a slice, which usually creates a copy); for this
+        # purpose we have a global setting
+
+        parent_ref = self._parent
+        if comma.config.settings.SLICE_DEEP_COPY_PARENT:
+            parent_ref = copy.deepcopy(parent_ref)
 
         if type(key) is slice:
-            return self.clone(newdata=self.data[key])
+
+            # slices can either be shallow or deep depending on
+            # global settings
+
+            data_subset = self.data[key]
+            if comma.config.settings.SLICE_DEEP_COPY_DATA:
+                data_subset = copy.deepcopy(data_subset)
+
+            obj = self.clone(newdata=data_subset, _parent=parent_ref)
+
+            return obj
 
         # field-slice or primary-key-query
         if type(key) is str:
 
             # field-slice, i.e. csv_table["street"]
             if key in self.header:
+
+                data_subset = self.data[:]
+                if comma.config.settings.SLICE_DEEP_COPY_DATA:
+                    data_subset = copy.deepcopy(data_subset)
+
                 return comma.classes.slices.CommaFieldSlice(
-                    initlist=self,
-                    parent=self._parent,
+                    initlist=data_subset,
+                    parent=parent_ref,
                     field_name=key)
 
             # primary key query, i.e., csv_table["someperson@marcopolo.me"]
             else:
                 if self.primary_key is not None:
                     self._update_primary_key_dict()
-                    i = self._primary_key_dict.get(key)
-                    if i is not None:
-                        return self.__getitem__(i)  # recursive call, but change of type
+                    id_of_key_row = self._primary_key_dict.get(key)
+                    if id_of_key_row is not None:
+                        # recursive call, but change of type
+                        return self.__getitem__(id_of_key_row)
                     raise comma.exceptions.CommaKeyError(
                         "no record with that primary key: '{}'".format(key))
 
@@ -350,10 +373,14 @@ class CommaTable(collections.UserList, list, collections.UserDict, comma.abstrac
         """
 
         """
-        ##print("CommaTable.__setitem__", hex(id(self)), key, type(key), "<==", value, type(value))
+        if type(key) is int:
 
-        # FIXME: figure out how to make slices have headers
-        if type(key) is int or type(key) is slice:
+            value._parent = self._parent
+            return super().__setitem__(key, value)
+
+        if type(key) is slice:
+            for row in value:
+                row._parent = self._parent
             return super().__setitem__(key, value)
 
         # field-slice, i.e. csv_table["street"]
@@ -366,6 +393,7 @@ class CommaTable(collections.UserList, list, collections.UserDict, comma.abstrac
                     raise comma.exceptions.CommaBatchException(
                         "not right size")
 
+                # copy each cell from the slice to the original list
                 for i in range(len(self)):
                     self[i][key] = value[i]
 
@@ -374,9 +402,10 @@ class CommaTable(collections.UserList, list, collections.UserDict, comma.abstrac
             # is this primary key indexing
             elif self.primary_key is not None:
                 self._update_primary_key_dict()
-                i = self._primary_key_dict.get(key)
-                if i is not None:
-                    return self.__setitem__(i, value)  # recursive call, but change of type
+                id_of_key_row = self._primary_key_dict.get(key)
+                if id_of_key_row is not None:
+                    # recursive call, but change of type
+                    return self.__setitem__(id_of_key_row, value)
                 raise comma.exceptions.CommaKeyError(
                     "no record with that primary key: '{}'".format(key))
 

@@ -103,15 +103,48 @@ class TestConfig:
     def test_config_constructor(self):
         comma.config.ConfigClass()
 
-    def test_misc(self):
+    def test_misc(self, subtests):
+        """
+        Checks that we are able to persistently change the values of the
+        configuration settings.
+        """
+
         obj = comma.config.ConfigClass()
 
-        obj.SLICE_DEEP_COPY_DATA = True
-        assert obj.SLICE_DEEP_COPY_DATA
-        obj.SLICE_DEEP_COPY_DATA = False
-        assert not obj.SLICE_DEEP_COPY_DATA
+        with subtests.test(msg="SLICE_DEEP_COPY_DATA"):
+            obj.SLICE_DEEP_COPY_DATA = True
+            assert obj.SLICE_DEEP_COPY_DATA
+            obj.SLICE_DEEP_COPY_DATA = False
+            assert not obj.SLICE_DEEP_COPY_DATA
 
-        obj.SLICE_DEEP_COPY_PARENT = True
-        assert obj.SLICE_DEEP_COPY_PARENT
-        obj.SLICE_DEEP_COPY_PARENT = False
-        assert not obj.SLICE_DEEP_COPY_PARENT
+        with subtests.test(msg="SLICE_DEEP_COPY_PARENT"):
+            obj.SLICE_DEEP_COPY_PARENT = True
+            assert obj.SLICE_DEEP_COPY_PARENT
+            obj.SLICE_DEEP_COPY_PARENT = False
+            assert not obj.SLICE_DEEP_COPY_PARENT
+
+    def test_patch_args(self, subtests, mocker):
+        """
+        Checks that we are able to properly patch the configuration settings
+        within tests.
+        """
+        original_copy_data = comma.config.settings.SLICE_DEEP_COPY_DATA
+        original_copy_parent = comma.config.settings.SLICE_DEEP_COPY_PARENT
+
+        mock_settings = mocker.patch("comma.config.settings")
+
+        with subtests.test(msg="SLICE_DEEP_COPY_DATA"):
+            mock_settings.SLICE_DEEP_COPY_DATA = True
+            assert comma.config.settings.SLICE_DEEP_COPY_DATA
+            mock_settings.SLICE_DEEP_COPY_DATA = False
+            assert not comma.config.settings.SLICE_DEEP_COPY_DATA
+            mock_settings.stop()
+            assert comma.config.settings.SLICE_DEEP_COPY_DATA == original_copy_data
+
+        with subtests.test(msg="SLICE_DEEP_COPY_PARENT"):
+            mock_settings.SLICE_DEEP_COPY_PARENT = True
+            assert comma.config.settings.SLICE_DEEP_COPY_PARENT
+            mock_settings.SLICE_DEEP_COPY_PARENT = False
+            assert not comma.config.settings.SLICE_DEEP_COPY_PARENT
+            mock_settings.stop()
+            assert comma.config.settings.SLICE_DEEP_COPY_PARENT == original_copy_parent
