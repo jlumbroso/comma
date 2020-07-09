@@ -34,14 +34,18 @@ binaryornot = {version = "^0.4.4", optional = true}
 clevercsv = {version = "^0.6.3", optional = true}
 
 [tool.poetry.dev-dependencies]
-pytest = "^5.2"
 ipykernel = "^5.2.1"
+pytest = "^5.2"
 pytest-cov = "^2.9.0"
+codecov = "^2.1.7"
 pytest-mock = "^3.1.1"
 requests-mock = "^1.8.0"
 pytest-subtests = "^0.3.1"
-codecov = "^2.1.7"
 extradict = "^0.4.0"
+sphinx = "^3.1.2"
+sphinx-autodoc-typehints = "^1.11.0"
+sphinx-rtd-theme = "^0.5.0"
+doc8 = "^0.8.1"
 
 [tool.poetry.extras]
 autodetect = ["binaryornot", "clevercsv", "chardet"]
