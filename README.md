@@ -2,6 +2,8 @@
 
 ![pytest](https://github.com/jlumbroso/comma/workflows/pytest/badge.svg)
  [![codecov](https://codecov.io/gh/jlumbroso/comma/branch/master/graph/badge.svg)](https://codecov.io/gh/jlumbroso/comma)
+ [![Documentation Status](https://readthedocs.org/projects/comma/badge/?version=latest)](https://comma.readthedocs.io/en/latest/?badge=latest)
+
 
 This library tries to make manipulating CSV files a great experience.
 
