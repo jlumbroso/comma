@@ -36,13 +36,21 @@ jobs:
           python_version: 3.8.0
           poetry_version: 1.0
           working_directory: "."
-          args: export -f requirements.txt > requirements.txt
+          args: export -E 'autodetect net' -f requirements.txt > requirements.txt
+
+      - name: Generate requirements-dev.txt
+        uses: abatilo/actions-poetry@v1.5.0
+        with:
+          python_version: 3.8.0
+          poetry_version: 1.0
+          working_directory: "."
+          args: export --dev -E 'autodetect net' -f requirements.txt > requirements-dev.txt
 
       - name: Commit generated requirements.txt
         uses: EndBug/add-and-commit@v4
         with:
-          message: "Commit updated requirements.txt for dependency graph"
-          add: "requirements.txt"
+          message: "Commit updated requirements for GH dependency graph + rtd.io"
+          add: "requirements*.txt"
           cwd: "."
           force: true
         env:
