@@ -6,6 +6,8 @@ import typing
 __author__ = "Jérémie Lumbroso <lumbroso@cs.princeton.edu>"
 
 __all__ = [
+    "TypedDict",
+
     "SourceType",
 
     "HeaderType",
@@ -16,6 +18,19 @@ __all__ = [
     "CommaInfoType",
     "CommaInfoParamsType"
 ]
+
+
+try:
+    
+    TypedDict = typing.TypedDict
+    
+except AttributeError:  # pragma: no cover
+    # The feature was introduced in Python 3.8
+    
+    def typeddict_workaround(name: str, dict_type: typing.Dict) -> type:
+        return typing.Dict
+
+    TypedDict = typeddict_workaround
 
 
 # Our type hint for a CSV header

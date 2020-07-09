@@ -12,6 +12,7 @@ import comma.classes.file
 import comma.classes.row
 import comma.classes.slices
 import comma.classes.table
+import comma.typing
 
 
 DATA_DIR = os.path.join(
@@ -20,7 +21,7 @@ DATA_DIR = os.path.join(
 )
 
 
-CommaTableTestingExtrasType = typing.TypedDict(
+CommaTableTestingExtrasType = comma.typing.TypedDict(
     "CommaTableTestingExtrasType", {
         # the fixture table
         "table": comma.classes.table.CommaTable,
