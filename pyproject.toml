@@ -8,7 +8,7 @@ readme = "README.md"
 homepage = "https://github.com/jlumbroso/comma"
 repository = "https://github.com/jlumbroso/comma"
 include = [
-    "README.md"
+    "README.md",
 ]
 keywords = [
     "CSV",
