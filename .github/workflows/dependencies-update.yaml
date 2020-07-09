@@ -36,7 +36,7 @@ jobs:
           python_version: 3.8.0
           poetry_version: 1.0
           working_directory: "."
-          args: export -E 'autodetect' -E 'net' -f requirements.txt > requirements.txt
+          args: export -E 'autodetect' -E 'net' -f requirements.txt --without-hashes > requirements.txt
 
       - name: Generate requirements-dev.txt
         uses: abatilo/actions-poetry@v1.5.0
@@ -44,7 +44,7 @@ jobs:
           python_version: 3.8.0
           poetry_version: 1.0
           working_directory: "."
-          args: export --dev -E 'autodetect' -E 'net' -f requirements.txt > requirements-dev.txt
+          args: export --dev -E 'autodetect' -E 'net' -f requirements.txt --without-hashes > requirements-dev.txt
 
       - name: Commit generated requirements.txt
         uses: EndBug/add-and-commit@v4
