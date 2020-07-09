@@ -71,7 +71,7 @@ except ImportError:  # pragma: no cover
 
 # Type definitions for helper dictionaries
 
-CommaInfoParamsType = typing.TypedDict(
+CommaInfoParamsType = TypedDict(
     "CommaInfoParamsType", {
         #
         "dialect":         DialectType,
@@ -84,7 +84,7 @@ CommaInfoParamsType = typing.TypedDict(
         "line_terminator": str,
     })
 
-CommaInfoType = typing.TypedDict(
+CommaInfoType = TypedDict(
     "CommaInfoType", {
         # the parsed CSV rows
         "rows":   typing.List[typing.List[str]],
