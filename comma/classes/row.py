@@ -36,20 +36,34 @@ class CommaRow(collections.UserList, list, collections.UserDict):
         self,
         initlist=None,
         parent: typing.Optional[object] = None,
-        slice_list=None,
-        original=None,
+        slice_list: typing.Optional[typing.List[slice]] = None,
+        original: typing.Optional[typing.Any] = None,
         *args,
         **kwargs
     ):
+        """
+        Internal constructor for a `CommaRow` object, which
+        takes an `initlist` list (the actual data row) and
+        some additional metadata, including the `parent`
+        object `CommaFile` object from which the `CommaRow`
+        has been loaded---and which may contain additional
+        information such as a header.
+        """
         # initialize internal attributes
         self._parent = typing.cast(comma.classes.file.CommaFile, parent)
         self._slice_list = slice_list if slice_list is not None else list()
         self._original = self if original is None else original
 
         # call base constructor for lists
-        ret = super().__init__(initlist, *args, **kwargs)
+        super().__init__(initlist)
 
-    def __deepcopy__(self, memodict=None):
+    def __deepcopy__(
+            self,
+            memodict: typing.Optional[typing.Dict[int, typing.Any]] = None,
+    ):
+        """
+
+        """
         id_self = id(self)
         if memodict is not None and id_self in memodict:
             return memodict.get(id_self)
@@ -61,6 +75,44 @@ class CommaRow(collections.UserList, list, collections.UserDict):
         )
         memodict[id_self] = obj
         return obj
+
+    def __sliced_data(self, data=None):
+        """
+        Returns the data (by default, the self's data) sliced
+        according to the (possibly `None` or `[]`) internal list
+        of slices.
+        """
+
+        # default to the internal data
+        if data is None:
+            data = self.data
+
+        return comma.helpers.multislice_sequence(
+            sequence=data,
+            slice_list=self._slice_list)
+
+    def __len__(self):
+        """
+        Returns the number of fields stored in this `CommaRow`.
+        """
+        return len(self.__sliced_data(data=range(len(self.data))))
+
+    def __sliced_dict(self):
+        """
+        Returns a dictionary-casted version of the `CommaRow` data.
+        """
+        header = self.header
+
+        if header is None:
+            raise comma.exceptions.CommaNoHeaderException(
+                "this operation assumes existence of header which "
+                "is unavailable"
+            )
+
+        return dict(zip(
+            self.header,
+            self.__sliced_data(),
+        ))
 
     @property
     def header(self):
@@ -75,18 +127,16 @@ class CommaRow(collections.UserList, list, collections.UserDict):
                 "CSV file does not appear to have a header and "
                 "none was provided; key-based access not possible")
 
-        return comma.helpers.multislice_sequence(
-            sequence=self._parent.header,
-            slice_list=self._slice_list)
+        return self.__sliced_data(data=self._parent.header)
 
     def keys(self):
         return collections.abc.KeysView(self.header)
 
     def values(self):
-        return dict(self).values()
+        return self.__sliced_dict().values()
 
     def items(self):
-        return dict(self).items()
+        return self.__sliced_dict().items()
 
     def __key_to_column_id(self, key):
         """
@@ -123,9 +173,9 @@ class CommaRow(collections.UserList, list, collections.UserDict):
 
         return key_index
 
-    # FIXME: add __iter__
     def __iter__(self):
-        for i in range(len(self)):
+        ids = range(len(self))
+        for i in ids:
             yield self[i]
 
     def __setitem__(self, key, value):
