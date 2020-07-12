@@ -606,6 +606,171 @@ class TestCommaTable:
             self.SOME_STRING,
         )
 
+    def test_setitem_badtype_commakeyerror(self, comma_table):
+        """
+        Checks whether the `CommaTable.__setitem__()` properly raises
+        an exception when attempting to index by a key that is neither
+        an integer (row index) or a string (column name or primary key
+        identifier).
+        """
+        with pytest.raises(comma.exceptions.CommaKeyError):
+            comma_table[0.0] = []
+
+    def test_setitem_strkey_primarykey_commakeyerror(self, real_comma_table):
+        """
+        Checks to see whether setting an item with a `str` key in
+        a `CommaTable` properly fails if the key in question does
+        not correspond to a valid column name or, in the case where
+        a `primary_key` is configured, if the key in question does
+        not correspond to a primary key value.
+        """
+        headers = list(real_comma_table[0].keys())
+
+        row_count = len(real_comma_table)
+        col_count = len(headers)
+        assert row_count > 0 and col_count > 0
+
+        real_comma_table.primary_key = headers[0]
+
+        # try to change a row that does not exist
+        with pytest.raises(comma.exceptions.CommaKeyError):
+            real_comma_table[self.SOME_STRING] = list(copy.deepcopy(real_comma_table[0]))
+
+    def test_setitem_strkey_primarykey(self, real_comma_table, real_csv_data):
+        """
+        Checks that a `CommaTable` object can be modified in place, in the case
+        where the modification is through a primary key query. This test is
+        randomized and will run multiple times.
+        """
+        header_row = real_csv_data[0]
+
+        # check that the object version and Pythonic version are of the same data
+        for i in range(1, len(real_csv_data)):
+            TestCommaTable.assert_iter_by_value(
+                dict(real_comma_table[i-1]),
+                dict(zip(header_row, real_csv_data[i])))
+
+        # get CSV dump
+        csv_str_dump = real_comma_table.dump()
+        assert csv_str_dump != ""
+
+        # choose position to change
+        rand_id_row = random.randint(0, len(real_comma_table) - 1)
+        rand_id_col = random.randint(0, len(header_row) - 1)
+        rand_str_col = header_row[rand_id_col]
+        rand_value = real_comma_table[rand_id_row][rand_id_col]
+
+        # assign a column to primary key
+        real_comma_table.primary_key = rand_str_col
+
+        # =======================================================>
+        # ACTUAL TESTING CODE
+        # change position by int id
+
+        obj = real_comma_table[rand_value]
+        obj_copy = copy.deepcopy(obj)
+        obj_copy[rand_id_col] = self.SOME_STRING
+
+        real_comma_table[rand_value] = obj_copy
+        # =======================================================>
+
+        # assert that we modified a copy
+        assert obj[rand_id_col] != obj_copy[rand_id_col]
+
+        # get changed CSV dump
+        csv_changed_str_dump = real_comma_table.dump()
+        assert csv_changed_str_dump != ""
+
+        assert csv_changed_str_dump != csv_str_dump
+        assert csv_changed_str_dump == csv_str_dump.replace(
+            rand_value,
+            self.SOME_STRING,
+        )
+
+    def test_setitem_slice(self, real_comma_table, real_csv_data):
+        """
+        Checks that a `CommaTable` object can be modified in place, in the case
+        where the modification is indexed by a slice object. This test is
+        randomized and will run multiple times.
+        """
+        header_row = real_csv_data[0]
+
+        # check that the object version and Pythonic version are of the same data
+        for i in range(1, len(real_csv_data)):
+            TestCommaTable.assert_iter_by_value(
+                dict(real_comma_table[i-1]),
+                dict(zip(header_row, real_csv_data[i])))
+
+        # get CSV dump
+        csv_str_dump = real_comma_table.dump()
+        assert csv_str_dump != ""
+
+        # choose position to change
+        rand_id_row = random.randint(0, len(real_comma_table) - 1)
+        rand_id_col = random.randint(0, len(header_row) - 1)
+        rand_str_col = header_row[rand_id_col]
+        rand_value = real_comma_table[rand_id_row][rand_id_col]
+
+        # assign a column to primary key
+        real_comma_table.primary_key = rand_str_col
+
+        # =======================================================>
+        # ACTUAL TESTING CODE
+        # change position by int id
+
+        obj = real_comma_table[rand_id_row]
+        obj_copy = copy.deepcopy(obj)
+        obj_copy[rand_id_col] = self.SOME_STRING
+
+        real_comma_table[rand_id_row:rand_id_row+1] = [obj_copy]
+        # =======================================================>
+
+        # assert that we modified a copy
+        assert obj[rand_id_col] != obj_copy[rand_id_col]
+
+        # get changed CSV dump
+        csv_changed_str_dump = real_comma_table.dump()
+        assert csv_changed_str_dump != ""
+
+        assert csv_changed_str_dump != csv_str_dump
+        assert csv_changed_str_dump == csv_str_dump.replace(
+            rand_value,
+            self.SOME_STRING,
+        )
+
+    def test_concatenate(self, real_comma_table, real_csv_data):
+        """
+        Checks to see whether concatenating a new row works properly.
+        """
+        header_row = real_csv_data[0]
+
+        # check that the object version and Pythonic version are of the same data
+        for i in range(1, len(real_csv_data)):
+            TestCommaTable.assert_iter_by_value(
+                dict(real_comma_table[i-1]),
+                dict(zip(header_row, real_csv_data[i])))
+
+        # get CSV dump
+        csv_str_dump = real_comma_table.dump()
+        assert csv_str_dump != ""
+
+        # create a new bogus row
+        new_row = [self.SOME_STRING]*len(header_row)
+
+        # FIXME: This should not be necessary
+        new_row_dict = dict(zip(header_row, new_row))
+
+        # insert functionally by duplicating object
+        new_rct = real_comma_table + [new_row_dict]
+
+        # insert using side effects
+        real_comma_table.append(new_row_dict)
+
+        assert real_comma_table.dump() != csv_str_dump
+        assert new_rct.dump() != csv_str_dump
+        assert real_comma_table.dump() == new_rct.dump()
+
+
     # def test_header_parent_none(self, comma_table):
     #     """
     #
