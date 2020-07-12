@@ -482,6 +482,17 @@ dev = ["pre-commit", "tox", "pytest-asyncio"]
 
 [[package]]
 category = "dev"
+description = "pytest plugin for repeating tests"
+name = "pytest-repeat"
+optional = false
+python-versions = "*"
+version = "0.8.0"
+
+[package.dependencies]
+pytest = ">=3.6"
+
+[[package]]
+category = "dev"
 description = "unittest subTest() support and subtests fixture"
 name = "pytest-subtests"
 optional = false
@@ -789,7 +800,7 @@ autodetect = ["binaryornot", "clevercsv", "chardet"]
 net = ["requests"]
 
 [metadata]
-content-hash = "32a6735a7eda4034815a80dd50478bb2b162581a5742845a4fd08fde3189ff5c"
+content-hash = "4ceb217265d79fb8ae90aa99ed4209019e293d8e6fccaf0bdfc407433f28aa2b"
 python-versions = "^3.8"
 
 [metadata.files]
@@ -1043,6 +1054,10 @@ pytest-cov = [
 pytest-mock = [
     {file = "pytest-mock-3.1.1.tar.gz", hash = "sha256:636e792f7dd9e2c80657e174c04bf7aa92672350090736d82e97e92ce8f68737"},
     {file = "pytest_mock-3.1.1-py3-none-any.whl", hash = "sha256:a9fedba70e37acf016238bb2293f2652ce19985ceb245bbd3d7f3e4032667402"},
+]
+pytest-repeat = [
+    {file = "pytest-repeat-0.8.0.tar.gz", hash = "sha256:52bc413ab1a772e72c953a5592196ddd266fd2e76280eaac0c2a8378e9ac6dd9"},
+    {file = "pytest_repeat-0.8.0-py2.py3-none-any.whl", hash = "sha256:f506cf5b3306cc4308c4a76f6d8988a9f61c1c2609d48ad422e26a8e37ae50c4"},
 ]
 pytest-subtests = [
     {file = "pytest-subtests-0.3.1.tar.gz", hash = "sha256:f673d8536eb8a153dd9c871b55c06aa3dea55cbdcf3bb3cdd4c4149a4e81606f"},

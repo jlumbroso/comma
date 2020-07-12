@@ -1,5 +1,6 @@
 
 import copy
+import random
 
 import pytest
 
@@ -462,6 +463,148 @@ class TestCommaTable:
         with pytest.raises(comma.exceptions.CommaKeyError):
             comma_table.__getitem__(some_invalid_str_key)
 
+    @staticmethod
+    def assert_iter_by_value(iter1, iter2):
+        """
+        Asserts that two iterables are identical.
+        """
+        for a, b in zip(iter1, iter2):
+            assert a == b
+
+    @pytest.mark.repeat(5)
+    def test_setitem_intkey_inbounds(self, real_comma_table, real_csv_data):
+        """
+        Checks that a `CommaTable` object can be modified in place. This test is
+        randomized and will run multiple times.
+        """
+        header_row = real_csv_data[0]
+
+        # check that the object version and Pythonic version are of the same data
+        for i in range(1, len(real_csv_data)):
+            TestCommaTable.assert_iter_by_value(
+                dict(real_comma_table[i-1]),
+                dict(zip(header_row, real_csv_data[i])))
+
+        # get CSV dump
+        csv_str_dump = real_comma_table.dump()
+        assert csv_str_dump != ""
+
+        # choose position to change
+        rand_id_row = random.randint(0, len(real_comma_table) - 1)
+        rand_id_col = random.randint(0, len(header_row) - 1)
+        rand_value = real_comma_table[rand_id_row][rand_id_col]
+
+        # =======================================================>
+        # ACTUAL TESTING CODE
+        # change position by int id
+        obj = real_comma_table[rand_id_row]
+        obj_copy = copy.deepcopy(obj)
+        obj_copy[rand_id_col] = self.SOME_STRING
+        real_comma_table[rand_id_row] = obj_copy
+        # =======================================================>
+
+        # assert that we modified a copy
+        assert obj_copy[rand_id_col] != obj[rand_id_col]
+
+        # get changed CSV dump
+        csv_changed_str_dump = real_comma_table.dump()
+        assert csv_changed_str_dump != ""
+
+        assert csv_changed_str_dump != csv_str_dump
+        assert csv_changed_str_dump == csv_str_dump.replace(
+            rand_value,
+            self.SOME_STRING,
+        )
+
+    def test_setitem_strkey_commabatchexc(self, real_comma_table):
+        """
+        Checks to see whether, when modifying a column, there is
+        code to check whether the size of the replacement column
+        is the same as the original column before proceeding, and
+        throws a `comma.exceptions.CommaBatchException` otherwise.
+        """
+        headers = list(real_comma_table[0].keys())
+
+        row_count = len(real_comma_table)
+        col_count = len(headers)
+        assert row_count > 0 and col_count > 0
+
+        bogus_field_col = [self.SOME_STRING] * (row_count - 1)
+
+        # try to assign a column that is short by one value
+        with pytest.raises(comma.exceptions.CommaBatchException):
+            real_comma_table[headers[0]] = bogus_field_col
+
+    def test_setitem_strkey_commakeyerror(self, real_comma_table):
+        """
+        Checks to see whether setting an item with a `str` key in
+        a `CommaTable` properly fails if the key in question does
+        not correspond to a valid column name.
+        """
+        headers = list(real_comma_table[0].keys())
+
+        row_count = len(real_comma_table)
+        col_count = len(headers)
+        assert row_count > 0 and col_count > 0
+
+        bogus_field_col = [self.SOME_STRING] * row_count
+
+        real_comma_table[headers[0]] = bogus_field_col
+
+        # try to change a column that does not exist
+        with pytest.raises(comma.exceptions.CommaKeyError):
+            real_comma_table[self.SOME_STRING] = bogus_field_col
+
+    @pytest.mark.repeat(5)
+    def test_setitem_strkey_fieldslice(self, real_comma_table, real_csv_data):
+        """
+        Checks that a `CommaTable` object can be modified in place, in the case
+        where the modification is through a field slice (a column). This test is
+        randomized and will run multiple times.
+        """
+        header_row = real_csv_data[0]
+
+        # check that the object version and Pythonic version are of the same data
+        for i in range(1, len(real_csv_data)):
+            TestCommaTable.assert_iter_by_value(
+                dict(real_comma_table[i-1]),
+                dict(zip(header_row, real_csv_data[i])))
+
+        # get CSV dump
+        csv_str_dump = real_comma_table.dump()
+        assert csv_str_dump != ""
+
+        # choose position to change
+        rand_id_row = random.randint(0, len(real_comma_table) - 1)
+        rand_id_col = random.randint(0, len(header_row) - 1)
+        rand_str_col = header_row[rand_id_col]
+        rand_value = real_comma_table[rand_id_row][rand_id_col]
+
+        # extract field slices
+        ref_field_slice = [row[rand_id_col] for row in real_csv_data[1:]]
+        field_slice = real_comma_table[rand_str_col]
+        TestCommaTable.assert_iter_by_value(field_slice, ref_field_slice)
+
+        # =======================================================>
+        # ACTUAL TESTING CODE
+        # change position by int id
+
+        field_slice[rand_id_row] = self.SOME_STRING
+        real_comma_table[rand_str_col] = field_slice
+        # =======================================================>
+
+        # assert that we modified a copy
+        assert field_slice[rand_id_row] != ref_field_slice[rand_id_row]
+
+        # get changed CSV dump
+        csv_changed_str_dump = real_comma_table.dump()
+        assert csv_changed_str_dump != ""
+
+        assert csv_changed_str_dump != csv_str_dump
+        assert csv_changed_str_dump == csv_str_dump.replace(
+            rand_value,
+            self.SOME_STRING,
+        )
 
     # def test_header_parent_none(self, comma_table):
     #     """
