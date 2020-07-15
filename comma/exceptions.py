@@ -13,6 +13,13 @@ __all__ = [
 ]
 
 
+class CommaEncodingException(Exception):
+    """
+    Auto-detection of encoding is failing; default UTF-8 encoding is
+    failing. Consider providing an encoding when opening the source.
+    """
+    pass
+
 class CommaException(Exception):
     """
     The base exception for the `comma` package.

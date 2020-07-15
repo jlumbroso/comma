@@ -12,6 +12,7 @@ try:
 except ImportError:  # pragma: no cover
     requests = None
 
+import comma.exceptions
 import comma.extras
 import comma.typing
 
@@ -408,7 +409,34 @@ def open_stream(
     if type(sample) is bytes:
         if encoding is None:
             encoding = comma.extras.detect_encoding(sample)
-        source = io.TextIOWrapper(source, encoding=encoding)
+
+        encoding_candidates = [encoding]
+        if "utf-8" not in encoding_candidates:
+            encoding_candidates.append("utf-8")
+
+        found_encoding = False
+        source_data = source.read()
+        for encoding in encoding_candidates:
+
+            source_with_encoding = io.TextIOWrapper(io.BytesIO(source_data), encoding=encoding)
+
+            # let's sniff test this encoding!
+            # sometimes the encoding detected just does not work
+            try:
+                source_with_encoding.seek(0)
+                source_with_encoding.read()
+                source_with_encoding.seek(0)
+                source = source_with_encoding
+                found_encoding = True
+                break
+            except UnicodeError:
+                continue
+
+        if not found_encoding:
+            raise comma.exceptions.CommaEncodingException(
+                "no suitable encoding could be found, tried: {}".format(
+                    encoding_candidates)
+            )
     
     # try to add useful metadata
     if internal_name is not None:
