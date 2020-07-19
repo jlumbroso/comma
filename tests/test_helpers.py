@@ -1,4 +1,5 @@
 
+import collections
 import io
 import itertools
 import os
@@ -211,6 +212,8 @@ class TestOpenStream:
 
     SOME_DATA = "col1,col2,col3\n,'row1',1,2\n'row2',5,6\n"
 
+    SOME_LATIN1_ENCODED_STRING = b"J\xe9r\xe9mie"  # :-)
+
     SOME_UTF8_ENCODED_STRING = (
         b"\xe5\xb7\x9d\xe6\x9c\x88\xe6\x9c\xa8\xe5\xbf\x83\xe7"
         b"\x81\xab\xe5\xb7\xa6\xe5\x8c\x97\xe4\xbb\x8a\xe5\x90"
@@ -275,6 +278,15 @@ class TestOpenStream:
         casted_none = typing.cast(
             comma.typing.SourceType, None)  # (purposefully) invalid cast
         assert comma.helpers.open_stream(source=casted_none) is None
+
+    def test_bad_encoding(self):
+        # by passing an encoding we are turning off autodetection
+        # so this will throw an exception since UTF-8 won't work,
+        # decoding a LATIN-1 encoded string
+        with pytest.raises(comma.exceptions.CommaEncodingException):
+            comma.helpers.open_stream(
+                self.SOME_LATIN1_ENCODED_STRING,
+                encoding="utf-8")
 
     def test_string_data_input(self):
         result = comma.helpers.open_stream(source=self.SOME_DATA)
@@ -551,7 +563,7 @@ class TestOpenCSV:
         # should be closed
         assert string_stream.closed
 
-    def test_close_at_end(self, mocker):
+    def test_close_at_end_aux(self, mocker):
         """
         Checks whether internally created streams are closed.
         """
@@ -598,6 +610,123 @@ class TestValidateHeader:
         with pytest.raises(comma.exceptions.CommaInvalidHeaderException):
             comma.helpers.validate_header(mocker.Mock())
 
+    def test_has_header_fail_with_none(self):
+        assert not comma.helpers.has_header(None)
+
+    def test_has_header_fail_with_dict(self):
+        assert not comma.helpers.has_header(dict())
+
+    def test_has_header_succeed_with_mock(self, mocker):
+        mock_obj_with_header = mocker.Mock(header=self.SOME_HEADER)
+        assert comma.helpers.has_header(mock_obj_with_header)
+
+
+class TestIsDictOrList:
+
+    SOME_HEADER = ["a", "b", "c"]
+    SOME_DICT = {"k":"v"}
+    SOME_LIST = [1]
+
+    def test_iterable_typing_check(self):
+        """
+        Checks whether we know how to "fool" the `typing.Iterator`
+        checking.
+        """
+        class BogusIterator:
+            def __next__(self):
+                pass
+            def __iter__(self):
+                pass
+
+        assert isinstance(BogusIterator(), typing.Iterator)
+
+    def test_none(self):
+        assert comma.helpers.is_dict_or_list(None) is None
+
+    def test_has_header_dict(self, mocker):
+        # dict(MagicMock()) will {} therefore the is_dict_or_list() will work
+        mock_obj_with_header = mocker.MagicMock(header=self.SOME_HEADER)
+        assert comma.helpers.has_header(mock_obj_with_header)
+        assert comma.helpers.is_dict_or_list(mock_obj_with_header) is dict
+
+    def test_isdict_success(self):
+        obj = dict(self.SOME_DICT)
+        assert comma.helpers.is_dict_or_list(obj) is dict
+
+    def test_isuserdict_success(self):
+        obj = collections.UserDict(self.SOME_DICT)
+        assert comma.helpers.is_dict_or_list(obj) is dict
+
+    def test_islist_success(self):
+        obj = list(self.SOME_LIST)
+        assert comma.helpers.is_dict_or_list(obj) is list
+
+    def test_isuserlist_success(self):
+        obj = collections.UserList(self.SOME_LIST)
+        assert comma.helpers.is_dict_or_list(obj) is list
+
+    def test_itervariant_isdict_success(self):
+        obj = iter(dict(self.SOME_DICT).items())
+        assert comma.helpers.is_dict_or_list(obj) is dict
+
+    def test_itervariant_isuserdict_success(self):
+        obj = iter(collections.UserDict(self.SOME_DICT).items())
+        assert comma.helpers.is_dict_or_list(obj) is dict
+
+    def test_itervariant_islist_success(self):
+        obj = iter(list(self.SOME_LIST))
+        assert comma.helpers.is_dict_or_list(obj) is list
+
+    def test_itervariant_isuserlist_success(self):
+        obj = iter(collections.UserList(self.SOME_LIST))
+        assert comma.helpers.is_dict_or_list(obj) is list
+
+    def test_iter_failnone(self):
+        class CrashingIterator:
+            def __next__(self):
+                raise Exception("bogus iterator")
+            def __iter__(self):
+                return self
+        obj = CrashingIterator()
+        assert comma.helpers.is_dict_or_list(obj) is None
+
+    def test_blind_list_success(self, mocker):
+
+        obj = list(self.SOME_LIST)
+        m = mocker.patch("comma.helpers.isinstance", return_value=False)
+        assert comma.helpers.is_dict_or_list(obj) is list
+        m.assert_called()
+
+    def test_blind_dict_success(self, mocker):
+
+        obj = dict(self.SOME_DICT)
+        m = mocker.patch("comma.helpers.isinstance", return_value=False)
+        assert comma.helpers.is_dict_or_list(obj) is dict
+        m.assert_called()
+
+    def test_return_none(self, mocker):
+        obj_mock = mocker.Mock()
+        assert comma.helpers.is_dict_or_list(obj_mock) is None
+
+    def test_many_list(self):
+        objs = [list(self.SOME_LIST)]*3
+        assert comma.helpers.is_dict_or_list_many(*objs) is list
+
+    def test_many_dict(self):
+        objs = [dict(self.SOME_DICT)]*3
+        assert comma.helpers.is_dict_or_list_many(*objs) is dict
+
+    def test_many_dict_and_list(self):
+        objs = [dict(self.SOME_DICT)] + [list(self.SOME_LIST)]
+        assert comma.helpers.is_dict_or_list_many(*objs) is list
+
+    def test_many_some_none(self, mocker):
+        objs = [dict(self.SOME_DICT)] + [mocker.Mock()]
+        assert comma.helpers.is_dict_or_list_many(*objs) is None
+
+    def test_conversion_none(self, mocker):
+        objs = [dict(self.SOME_DICT)] + [mocker.Mock()]
+        assert comma.helpers.dict_or_list_many(*objs) is None
 
 class TestMultislice:
     """

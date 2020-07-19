@@ -1,6 +1,9 @@
 
+import collections
+import contextlib
 import csv
 import io
+import itertools
 import os
 import typing
 import urllib
@@ -36,6 +39,9 @@ __all__ = [
     "open_csv",
 
     "validate_header",
+    "has_header",
+    "detect_sequence_kind",
+    "detect_sequence_common_kind",
 
     "multislice_sequence",
     "multislice_range",
@@ -571,6 +577,100 @@ def validate_header(value: typing.Any) -> typing.List[str]:
     header_as_list = list(map(str, header_as_list))
 
     return header_as_list
+
+
+def has_header(value: typing.Any) -> bool:
+    """
+    Checks whether a `value` has a `header` attribute (that is not `None`).
+    """
+    # noinspection PyBroadException
+    try:
+        return value.header is not None
+    except:
+        return False
+
+
+def is_dict_or_list(value: typing.Any) -> typing.Optional[type]:
+    """
+    Checks whether `value` may be some subtype of a `dict` or of a
+    `list`, or whether `value` can be casted to a `dict` or a `list`.
+    (As specified, when both are possibilities, the `dict` is
+    prioritized.)
+    """
+    if value is None:
+        return
+
+    # 1. may have an attribute `header'?
+    if comma.helpers.has_header(value):
+        with contextlib.suppress(Exception):
+            dict(value)
+            return dict
+
+    # 2. may be a dict subtype?
+    if isinstance(value, dict) or isinstance(value, collections.UserDict):
+        with contextlib.suppress(Exception):
+            dict(value)
+            return dict
+
+    # 3. may be a list subtype?
+    if isinstance(value, list) or isinstance(value, collections.UserList):
+        with contextlib.suppress(Exception):
+            list(value)
+            return list
+
+    # 4. may be an iterator?
+    if isinstance(value, typing.Iterator):
+        # if so, since an iterator can usually only be run once,
+        # make a backup of iterator with `itertools.tee()`
+        value, aux = itertools.tee(value)
+        aux1, aux2 = itertools.tee(aux)
+        with contextlib.suppress(Exception):
+            dict(aux1)
+            return dict
+        with contextlib.suppress(Exception):
+            list(aux2)
+            return list
+
+        # if this did not work for iterator, nothing will, give up!
+        return
+
+    # 5. just try the duck-typing outright
+    with contextlib.suppress(Exception):
+        dict(value)
+        return dict
+    with contextlib.suppress(Exception):
+        list(value)
+        return list
+
+    # 6. no clue
+    return
+
+
+def is_dict_or_list_many(a, b, *others):
+    """
+    Checks whether the arguments are `dict` or `list`, then returns: `dict` if
+    they are all a subtype of `dict`; `list` if some are of subtype `dict` and
+    others `list`; and `None` in other situations.
+    """
+    args = [a, b] + list(others)
+    typ = dict
+    for typp in map(comma.helpers.is_dict_or_list, args):
+        if typp is list:
+            typ = list
+        if typp is None:
+            typ = None
+    return typ
+
+
+def dict_or_list_many(*args):
+    """
+    Returns the input parameters casted to the appropriate common subtype,
+    of either `dict` or `list`.
+    """
+    common_subtype = comma.helpers.is_dict_or_list_many(*args)
+    if common_subtype is not None:
+        return list(map(common_subtype, args))
+
 
 def multislice_sequence(
     sequence: typing.Sequence[typing.Any],

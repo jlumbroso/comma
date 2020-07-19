@@ -3,6 +3,7 @@ __author__ = "Jérémie Lumbroso <lumbroso@cs.princeton.edu>"
 
 __all__ = [
     "CommaException",
+    "CommaTypeError",
     "CommaOrphanException",
     "CommaOrphanRowException",
     "CommaOrphanTableException",
@@ -23,6 +24,13 @@ class CommaEncodingException(Exception):
 class CommaException(Exception):
     """
     The base exception for the `comma` package.
+    """
+    pass
+
+
+class CommaTypeError(CommaException, TypeError):
+    """
+    The type error for the `comma` package.
     """
     pass
 
