@@ -1,6 +1,9 @@
 
+import copy
+
 import pytest
 
+import comma
 import comma.classes.row
 import comma.exceptions
 
@@ -11,6 +14,7 @@ class TestCommaFieldSlice:
     SOME_HEADER = ["field1", "field2"]
     SOME_DATA_ROWS = [["data", "data2"], ["datarow2", "datarow2B"]]
     SOME_DATA_ROW = SOME_DATA_ROWS[0]
+    SOME_COL_SLICE = [SOME_DATA_ROWS[0][0], SOME_DATA_ROWS[1][0]]
     SOME_DATA_DICT = dict(zip(SOME_HEADER, SOME_DATA_ROW))
     SOME_NON_HEADER_NAME = "cassava"
 
@@ -23,7 +27,7 @@ class TestCommaFieldSlice:
         """
         mock_parent = mocker.Mock(header=self.SOME_HEADER)
         comma_field_slice_obj = comma.classes.slices.CommaFieldSlice(
-            self.SOME_DATA_ROWS,
+            copy.deepcopy(self.SOME_DATA_ROWS),
             parent=mock_parent,
             field_name=self.SOME_HEADER[0],
         )
@@ -61,6 +65,118 @@ class TestCommaFieldSlice:
         # remove (mock) parent header
         comma_field_slice._parent.header = None
         return comma_field_slice
+
+    def test_typeerror_get(self, comma_field_slice):
+        with pytest.raises(comma.exceptions.CommaTypeError):
+            comma_field_slice[self.SOME_NON_HEADER_NAME]
+
+    def test_typeerror_set(self, comma_field_slice):
+        with pytest.raises(comma.exceptions.CommaTypeError):
+            comma_field_slice[self.SOME_NON_HEADER_NAME] = self.SOME_NON_HEADER_NAME
+
+    # @pytest.mark.parametrize("deep", [True, False])
+    # def test_set(self, mocker, deep, comma_field_slice):
+    #     mocker.patch("comma.settings", SLICE_DEEP_COPY_DATA=deep)
+    #     assert comma.settings.SLICE_DEEP_COPY_DATA == deep
+    #
+    #     data_orig = copy.deepcopy(self.SOME_DATA_ROWS)
+    #     data_copy = copy.deepcopy(data_orig)
+    #     comma_field_slice.data = data_copy
+    #
+    #     comma_field_slice[:1] = [self.SOME_NON_HEADER_NAME]
+    #
+    #     if not deep:
+    #         assert data_copy[0][0] == self.SOME_NON_HEADER_NAME
+    #     else:
+    #         assert not data_copy[0][0] == self.SOME_NON_HEADER_NAME
+    @pytest.mark.parametrize("deep", [True, False])
+    def test_set_slicevalue(self, mocker, deep):
+        # NOTE: This somehow did not work (i.e., does not seem to propagate
+        # everywhere it is needed)
+        # mocker.patch("comma.settings",
+        #              SLICE_DEEP_COPY_DATA=deep,
+        #              SLICE_DEEP_COPY_PARENT=False)
+        # assert comma.settings.SLICE_DEEP_COPY_DATA == deep
+
+        # backup global setting
+        backup_sdcd = comma.settings.SLICE_DEEP_COPY_DATA
+        comma.settings.SLICE_DEEP_COPY_DATA = deep
+        assert comma.settings.SLICE_DEEP_COPY_DATA == deep
+
+        cf = comma.load(
+            "col1,col2,col3,col4,col5\n"
+            "row1col1,row1col2,row1col3,row1col4,row1col5\n"
+            "row2col1,row2col2,row2col3,row2col4,row2col5\n")
+
+        actual_slice = ["row1col1", "row2col1"]
+        modified_slice = ["ROW1COL1", "ROW2COL1"]
+
+        # query check
+        assert list(cf["col1"]) == actual_slice
+
+        # modification check
+        cf["col1"][0] = modified_slice[0]
+
+        # verification
+        if deep:
+            # change should not have propagated because of deep copy
+            assert cf["col1"][0] == actual_slice[0]
+        else:
+            assert cf["col1"][0] == modified_slice[0]
+
+        # restore original global setting
+        comma.settings.SLICE_DEEP_COPY_DATA = backup_sdcd
+
+    @pytest.mark.parametrize("deep", [True, False])
+    def test_set_sliceslice(self, mocker, deep):
+        # NOTE: This somehow did not work (i.e., does not seem to propagate
+        # everywhere it is needed)
+        # mocker.patch("comma.settings",
+        #              SLICE_DEEP_COPY_DATA=deep,
+        #              SLICE_DEEP_COPY_PARENT=False)
+        # assert comma.settings.SLICE_DEEP_COPY_DATA == deep
+
+        # backup global setting
+        backup_sdcd = comma.settings.SLICE_DEEP_COPY_DATA
+        comma.settings.SLICE_DEEP_COPY_DATA = deep
+        assert comma.settings.SLICE_DEEP_COPY_DATA == deep
+
+        cf = comma.load(
+            "col1,col2,col3,col4,col5\n"
+            "row1col1,row1col2,row1col3,row1col4,row1col5\n"
+            "row2col1,row2col2,row2col3,row2col4,row2col5\n")
+
+        actual_slice = ["row1col1", "row2col1"]
+        modified_slice = ["ROW1COL1", "ROW2COL1"]
+
+        # query check
+        assert list(cf["col1"]) == actual_slice
+
+        # modification check
+        cf["col1"][:] = modified_slice
+
+        # verification
+        if deep:
+            # change should not have propagated because of deep copy
+            assert cf["col1"][0] == actual_slice[0]
+        else:
+            assert cf["col1"][0] == modified_slice[0]
+
+        # restore original global setting
+        comma.settings.SLICE_DEEP_COPY_DATA = backup_sdcd
+
+    def test_set_slice_badlen(self, comma_field_slice):
+        with pytest.raises(comma.exceptions.CommaBatchException):
+            comma_field_slice[:] = []
+
+    def test_get_slice_deepcopy(self, comma_field_slice):
+        # backup global setting
+        backup_sdcd = comma.settings.SLICE_DEEP_COPY_DATA
+        comma.settings.SLICE_DEEP_COPY_DATA = True
+        slice = comma_field_slice[:]
+        assert list(slice) == self.SOME_COL_SLICE
+        # restore original global setting
+        comma.settings.SLICE_DEEP_COPY_DATA = backup_sdcd
 
     def test_field_index_calculation(self, comma_field_slice):
         """
@@ -124,30 +240,3 @@ class TestCommaFieldSlice:
 
         for val_from_cfs, row in zip(comma_field_slice, self.SOME_DATA_ROWS):
             assert val_from_cfs == row[field_index]
-
-
-# # noinspection PyProtectedMember
-# class TestCommaRowSlice:
-#
-#     SOME_HEADER = ["field1", "field2"]
-#     SOME_DATA_ROWS = [["data", "data2"], ["datarow2", "datarow2B"]]
-#     SOME_DATA_ROW = SOME_DATA_ROWS[0]
-#     SOME_DATA_DICT = dict(zip(SOME_HEADER, SOME_DATA_ROW))
-#     SOME_NON_HEADER_NAME = "cassava"
-#
-#     @pytest.fixture()
-#     def comma_row_slice(self, mocker):
-#         """
-#         Returns a fixture for a functional `comma.classes.slices.CommaRowSlice`
-#         object, with sample data, mock parent `CommaFile` object and a `header`.
-#         """
-#         mock_parent = mocker.Mock(header=self.SOME_HEADER)
-#         comma_row_slice_obj = comma.classes.slices.CommaRowSlice(
-#             self.SOME_DATA_ROW,
-#             parent=mock_parent,
-#         )
-#         return comma_row_slice_obj
-#
-#     def test(self, comma_row_slice):
-#         assert comma_row_slice._parent is not None
-

@@ -289,12 +289,16 @@ class CommaRow(collections.UserList, list, collections.UserDict):
 
     def __add__(self, other):
         casted_self, casted_other = comma.helpers.dict_or_list_many(self, other)
+        if type(casted_self) is dict:
+            raise NotImplementedError("cannot concatenate dicts yet")
         # self_repr = self.__repr__()
         # print("CommaRow.__add__", self_repr, other, id(other))
         return casted_self.__add__(casted_other)
 
     def __radd__(self, other):
         casted_self, casted_other = comma.helpers.dict_or_list_many(self, other)
+        if type(casted_self) is dict:
+            raise NotImplementedError("cannot concatenate dicts yet")
         # self_repr = self.__repr__()
         # print("CommaRow.__radd__", self_repr, other, id(other))
         return casted_other.__add__(casted_self)

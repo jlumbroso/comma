@@ -308,10 +308,20 @@ class TestCommaRow:
             comma_long_row._CommaRow__original_id_to_current_id(
                 len(comma_long_row) + 10)
 
-    # def test_add(self, comma_row, comma_long_row):
-    #     ret1 = comma_row.__add__(comma_long_row)
-    #     ret2 = comma_row.__radd__(comma_long_row)
-    #     ret3 = comma_long_row.__add__(comma_row)
-    #     ret4 = comma_long_row.__radd__(comma_row)
-    #     assert ret1 == ret4
-    #     assert ret2 == ret3
+    def test_add_aslists(self, comma_row, comma_long_row):
+        # removing header so these behave as lists
+        comma_row._parent.header = None
+        comma_long_row._parent.header = None
+        ret1 = comma_row.__add__(comma_long_row)
+        ret2 = comma_row.__radd__(comma_long_row)
+        ret3 = comma_long_row.__add__(comma_row)
+        ret4 = comma_long_row.__radd__(comma_row)
+        assert ret1 == ret4
+        assert ret2 == ret3
+
+    def test_add_asdicts_failing(self, comma_row, comma_long_row):
+        # both objects are dictionaries
+        with pytest.raises(NotImplementedError):
+            comma_row.__add__(comma_long_row)
+        with pytest.raises(NotImplementedError):
+            comma_row.__radd__(comma_long_row)
