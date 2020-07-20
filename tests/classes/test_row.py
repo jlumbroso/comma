@@ -1,5 +1,6 @@
 
 import copy
+import string
 
 import pytest
 
@@ -19,6 +20,12 @@ class TestCommaRow:
     SOME_OTHER_STRING = "blah blah string"
     EMPTY_STRING = ""
 
+    SOME_LONG_ROW_SIZE = 6
+    SOME_LONG_HEADER = ["col{}".format(x)
+                        for x in range(SOME_LONG_ROW_SIZE)]
+    SOME_LONG_ROW_DATA = ["{}{}".format(string.ascii_uppercase[x], x)
+                          for x in range(SOME_LONG_ROW_SIZE)]
+
     @pytest.fixture()
     def comma_row(self, mocker):
         """
@@ -28,6 +35,15 @@ class TestCommaRow:
         mock_parent = mocker.Mock(header=self.SOME_HEADER)
         comma_row_obj = comma.classes.row.CommaRow(
             self.SOME_DATA_ROW,
+            parent=mock_parent
+        )
+        return comma_row_obj
+
+    @pytest.fixture()
+    def comma_long_row(self, mocker):
+        mock_parent = mocker.Mock(header=self.SOME_LONG_HEADER)
+        comma_row_obj = comma.classes.row.CommaRow(
+            self.SOME_LONG_ROW_DATA,
             parent=mock_parent
         )
         return comma_row_obj
@@ -143,13 +159,43 @@ class TestCommaRow:
             # check that is not the case with different memoization dictionary
             assert mock_obj != comma_row.__deepcopy__(memodict=dict())
 
-    def test_getitem_slice(self, comma_row_no_header):
+    def test_getitem_slice_and_add(self, comma_row_no_header):
         lst0 = comma_row_no_header[:]
         lst1 = comma_row_no_header[1:]
         lst2 = comma_row_no_header[:1]
         lst3 = [lst2[0]] + lst1
         assert lst0 != lst1
         assert lst0 == lst3
+
+    def test_getitem_deepcopy(self, mocker, comma_row_no_header):
+        mocker.patch("comma.settings", SLICE_DEEP_COPY_DATA=True)
+
+        orig = comma_row_no_header
+        copy = comma_row_no_header[:]
+
+        assert len(orig) >= 1
+
+        assert orig[0] == copy[0]
+
+        orig[0] = self.SOME_OTHER_STRING
+        assert orig[0] == self.SOME_OTHER_STRING
+        assert orig[0] != copy[0]
+
+    def test_getitem_shallowcopy(self, mocker, comma_row_no_header):
+        mocker.patch("comma.settings", SLICE_DEEP_COPY_DATA=False)
+
+        orig = comma_row_no_header
+        copy = comma_row_no_header[:]
+
+        assert len(orig) >= 1
+
+        assert orig[0] == copy[0]
+
+        orig[0] = self.SOME_OTHER_STRING
+        assert orig[0] == self.SOME_OTHER_STRING
+        assert orig[0] == copy[0]
+        assert copy[0] == self.SOME_OTHER_STRING
+
 
     def test_getitem_str(self, comma_row):
         some_field_name = self.SOME_HEADER[0]
@@ -193,3 +239,79 @@ class TestCommaRow:
     def test_get_other_errors(self, comma_row):
         ret = comma_row.get(-1000, default=self.SOME_OTHER_STRING)
         assert ret == self.SOME_OTHER_STRING
+
+    def test_slicing_get_deepcopy(self, mocker, comma_long_row):
+        mocker.patch("comma.settings", SLICE_DEEP_COPY_DATA=True)
+
+        original_len = len(comma_long_row)
+        less_three = comma_long_row[1:][1:][1:]
+        assert len(less_three) == original_len - 3
+
+    def test_slicing_get_shallowcopy(self, mocker, comma_long_row):
+        mocker.patch("comma.settings", SLICE_DEEP_COPY_DATA=False)
+
+        original_len = len(comma_long_row)
+        less_three = comma_long_row[1:][1:][1:]
+        assert len(less_three) == original_len - 3
+
+    @pytest.mark.parametrize("deep", [True, False])
+    def test_slicing_set_deepvsshallow(self, deep, mocker, comma_long_row):
+        mocker.patch("comma.settings", SLICE_DEEP_COPY_DATA=deep)
+
+        original_len = len(comma_long_row)
+        less_three = comma_long_row[1:][1:][1:]
+        other_less_three = copy.deepcopy(comma_long_row[1:][1:][1:])
+
+        assert len(less_three) == original_len - 3
+        assert (
+                less_three[self.SOME_LONG_HEADER[3]] ==
+                self.SOME_LONG_ROW_DATA[3]
+        )
+        assert (less_three[0] == self.SOME_LONG_ROW_DATA[3])
+        assert (comma_long_row[3] == self.SOME_LONG_ROW_DATA[3])
+        less_three[:] = [self.SOME_STRING]*len(less_three)
+
+        if not comma.settings.SLICE_DEEP_COPY_DATA:
+            assert less_three[-1] == self.SOME_STRING
+            assert comma_long_row[-1] == self.SOME_STRING
+        else:
+            assert not less_three[-1] == self.SOME_STRING
+            assert not comma_long_row[-1] == self.SOME_STRING
+
+    def test_slicing_colnames(self, comma_long_row):
+        full_row = comma_long_row[
+            self.SOME_LONG_HEADER[0]:
+            self.SOME_LONG_HEADER[-1]
+        ]
+        assert list(full_row) == list(comma_long_row[:-1])
+        last_field = comma_long_row[self.SOME_LONG_HEADER[-1]:]
+        assert last_field[0] == comma_long_row[-1]
+
+    def test_slicing_set_badsize(self, comma_long_row):
+        with pytest.raises(comma.exceptions.CommaBatchException):
+            comma_long_row[:] = []
+
+    def test_original_id_to_current_id(self, mocker, comma_long_row):
+        # NOTE: very dirty testing, accessing private members
+        with pytest.raises(TypeError):
+            comma_long_row._CommaRow__original_id_to_current_id(
+                self.SOME_STRING)
+
+        with pytest.raises(IndexError):
+            comma_long_row._CommaRow__original_id_to_current_id(
+                len(comma_long_row) + 10)
+
+        mocker.patch.object(
+            comma.classes.row.CommaRow, "_CommaRow__sliced_data",
+            return_value=[])
+        with pytest.raises(IndexError):
+            comma_long_row._CommaRow__original_id_to_current_id(
+                len(comma_long_row) + 10)
+
+    # def test_add(self, comma_row, comma_long_row):
+    #     ret1 = comma_row.__add__(comma_long_row)
+    #     ret2 = comma_row.__radd__(comma_long_row)
+    #     ret3 = comma_long_row.__add__(comma_row)
+    #     ret4 = comma_long_row.__radd__(comma_row)
+    #     assert ret1 == ret4
+    #     assert ret2 == ret3

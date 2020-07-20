@@ -142,6 +142,26 @@ class CommaRow(collections.UserList, list, collections.UserDict):
     def items(self):
         return self.__sliced_dict().items()
 
+    def __original_id_to_current_id(self, index):
+        """
+        Internal method that translates an index from the original
+        row, into the indexing of the current sliced row.
+        """
+
+        if type(index) is not int:
+            raise TypeError("expected an integer index")
+
+        index_map = self.__sliced_data(enum=True)
+        for i in range(len(self.data)):
+            try:
+                reverse_i = index_map[i]
+                if reverse_i == index:
+                    return i
+            except IndexError:
+                continue
+
+        raise IndexError("index out of range")
+
     def __key_to_column_id(self, key):
         """
         Internal method that translates a key into a row index.
@@ -159,11 +179,18 @@ class CommaRow(collections.UserList, list, collections.UserDict):
             slice_start = key.start
             slice_stop = key.stop
 
-            if slice_start is not None:
-                slice_start = self.__key_to_column_id(slice_start)
+            # since we allow column names in the slices, we have to
+            # translate them to indexes in the original row, and then
+            # to relative indices, if it has been sliced since
 
-            if slice_stop is not None:
-                slice_stop = self.__key_to_column_id(slice_stop)
+            if slice_start is not None and type(slice_start) is str:
+                # get the column ID from name, in original row
+                col_index = self.__key_to_column_id(slice_start)
+                slice_start = self.__original_id_to_current_id(col_index)
+
+            if slice_stop is not None and type(slice_stop) is str:
+                col_index = self.__key_to_column_id(slice_stop)
+                slice_stop = self.__original_id_to_current_id(col_index)
 
             return slice(slice_start, slice_stop, key.step)
 
@@ -237,12 +264,28 @@ class CommaRow(collections.UserList, list, collections.UserDict):
     def __setitem__(self, key, value):
         ###print("CommaRow.__setitem__", hex(id(self)), key, type(key), value, type(value))
 
-        key_index = self.__key_to_column_id(key)
-        if type(key) is str and self._original != self:
-            ##print(type(key) is str and self._original != self)
-            return self._original.__setitem__(key, value)
-        ret = super().__setitem__(key_index, value)
-        return ret
+        if type(key) is slice:
+            # retrieve the slice (either shallow or deep depending on
+            # user configuration)
+            row_slice = self.__getitem__(key)
+
+            if len(row_slice) != len(value):
+                raise comma.exceptions.CommaBatchException(
+                    "attempting to assign a slice of different size"
+                )
+
+            for i in range(len(row_slice)):
+                row_slice[i] = value[i]
+
+        else:
+            key_index = self.__key_to_column_id(key)
+            super().__setitem__(key_index, value)
+        # key_index = self.__key_to_column_id(key)
+        # if type(key) is str and self._original != self:
+        #     ##print(type(key) is str and self._original != self)
+        #     return self._original.__setitem__(key, value)
+        # ret = super().__setitem__(key_index, value)
+        # return ret
 
     def __add__(self, other):
         casted_self, casted_other = comma.helpers.dict_or_list_many(self, other)
@@ -258,20 +301,36 @@ class CommaRow(collections.UserList, list, collections.UserDict):
 
     def __getitem__(self, key):
 
+        # key can be:
+        #   1. index (int), 2. key (str), 3. slice (using either as endpoints)
+        # in addition: underlying data can have been sliced
 
-        # FIXME: figure out how to make slices have headers
-        key_index = self.__key_to_column_id(key)
         # print("CommaRow.__getitem__", hex(id(self)), key, type(key), "==>", key_index)
-        ret = super().__getitem__(key_index)
 
-        if type(key) is slice:
+        # translate to underlying data
+        key_index = self.__key_to_column_id(key)
+
+        # special case of slice:
+        # - determine if preserve or not original references
+        # - result will be a CommaRow,
+        if type(key_index) is slice:
             if comma.settings.SLICE_DEEP_COPY_DATA:
-                ret.data = self.data[:]
+                data = copy.deepcopy(self.data)
             else:
-                ret.data = self.data
-            ret._parent = self._parent
-            ret._slice_list = self._slice_list[:] + [key]
-            ret._original = self._original
+                data = self.data
+
+            ret = CommaRow(
+                list(),  # placeholder value replaced in next line
+                parent=self._parent,
+                slice_list=self._slice_list[:] + [key_index],
+                original=self._original or self
+            )
+            # change after instantiation to ensure we control reference
+            ret.data = data
+
+        else:
+            # get, using access to underlying data, i.e., self.data
+            ret = super().__getitem__(key_index)
 
         return ret
 
