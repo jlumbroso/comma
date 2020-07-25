@@ -27,7 +27,7 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.6"
 requests = {version = "^2.23.0", optional = true}
 chardet = {version = "^3.0.4", optional = true}
 binaryornot = {version = "^0.4.4", optional = true}
@@ -47,6 +47,7 @@ sphinx = "^3.1.2"
 sphinx-autodoc-typehints = "^1.11.0"
 sphinx-rtd-theme = "^0.5.0"
 doc8 = "^0.8.1"
+tox = "^3.17.1"
 
 [tool.poetry.extras]
 autodetect = ["binaryornot", "clevercsv", "chardet"]
