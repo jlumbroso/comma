@@ -4,7 +4,7 @@ import re
 import comma
 
 
-VERSION_NUMBER = "0.5.0"
+VERSION_NUMBER = "0.5.1"
 POETRY_FILE = "pyproject.toml"
 
 
