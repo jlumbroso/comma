@@ -1,9 +1,8 @@
-Warning: The lock file is not up to date with the latest changes in pyproject.toml. You may be getting outdated dependencies. Run update to update them.
 binaryornot==0.4.4
 certifi==2020.6.20
 chardet==3.0.4
 clevercsv==0.6.3
 idna==2.10
-regex==2020.6.8
+regex==2020.7.14
 requests==2.24.0
-urllib3==1.25.9
+urllib3==1.25.10
