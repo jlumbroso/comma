@@ -21,7 +21,10 @@ def get_pyproject_version() -> str:
 
     assert os.path.exists(pyproject_path), "check poetry file exists"
 
-    pyproject_src = open(pyproject_path).read()
+    try:
+        pyproject_src = open(pyproject_path).read()
+    except UnicodeDecodeError:
+        pyproject_src = open(pyproject_path, "rb").read().decode(encoding="utf-8")
     version_match = re.search(
         r"version\s*=\s*\"([^\"]*)\"",
         pyproject_src)
