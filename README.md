@@ -10,6 +10,20 @@ This library tries to make manipulating CSV files a great experience.
 
 ![Example session](https://raw.githubusercontent.com/jlumbroso/comma/master/example-screenshot.png)
 
+## Features
+
+Here are some of the features that `comma` supports:
+
+- Robust autodetection of CSV parameters
+(thanks to [`clevercsv`](https://github.com/alan-turing-institute/CleverCSV)) and
+encoding (thanks to [`chardet`](https://github.com/chardet/chardet)).
+- Single-line usage, `comma.load(...)`, no syntax to remember or parameters to tweak.
+- Simple, Pythonic interface to access/modify the rows using standard `list` and
+`dict` operations, i.e. `row[0]` and `row["street"]` are equivalent.
+- Column slices using the header name, i.e. `table["street"]`.
+- In-place editing of the dataset, including multiple lines.
+- Opening files directly from an URL.
+
 ## Installation
 
 If you use pip:
@@ -41,7 +55,7 @@ means to load content from files in those respective formats to a
 nested Python object, for the CSV format,
 [the standard library](https://www.python.org/dev/peps/pep-0305/) has
 you use an iterator to access the data. Many details require significant
-syntax change (for instance the difference between have lists or
+syntax change (for instance the difference between having lists or
 dictionaries depends on the class that is used to read the file).
 
 Since then, we also have several excellent libraries that, by providing
