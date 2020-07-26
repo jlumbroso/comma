@@ -4,7 +4,13 @@ import csv
 import os
 import typing
 
-import extradict
+try:
+    # direct dependency of cool package
+    from extradict import MapGetter
+except ImportError:
+    # since the package is not available for all
+    # versions of Python, snapshot local dependency
+    from .helpers.map_getter import MapGetter
 import pytest
 
 import comma
@@ -135,7 +141,7 @@ class TestSacramentoRealEstateTransactions:
             table_info: CommaTableTestingExtrasType,
             modified_string: typing.Optional[str] = None,
     ):
-        with extradict.MapGetter(table_info) as info:
+        with MapGetter(table_info) as info:
             from info import table, record_index, field_index, original_value
             from info import some_record, some_record_copy
 
@@ -159,7 +165,7 @@ class TestSacramentoRealEstateTransactions:
     def assert_record_unmodified(
             table_info: CommaTableTestingExtrasType,
     ):
-        with extradict.MapGetter(table_info) as info:
+        with MapGetter(table_info) as info:
             from info import table, record_index, field_index, original_value
             from info import some_record, some_record_copy
 
@@ -268,7 +274,7 @@ class TestSacramentoRealEstateTransactions:
         Checks to see if modifications to a `CommaTable` object are correctly
         propagated where expected, when fields are edited by index (list access).
         """
-        with extradict.MapGetter(table_info) as info:
+        with MapGetter(table_info) as info:
             from info import table, record_index, field_index
             from info import some_record, some_record_copy
 
@@ -286,7 +292,7 @@ class TestSacramentoRealEstateTransactions:
         Checks to see if modifications to a `CommaTable` object are correctly
         propagated where expected, when fields are edited by key (dict access).
         """
-        with extradict.MapGetter(table_info) as info:
+        with MapGetter(table_info) as info:
             from info import table, record_index, field_index, field_name
             from info import some_record, some_record_copy
 
@@ -304,7 +310,7 @@ class TestSacramentoRealEstateTransactions:
         Checks to see if modifications to a `CommaTable` object are correctly
         propagated where expected, when fields are edited by key (dict access).
         """
-        with extradict.MapGetter(table_info) as info:
+        with MapGetter(table_info) as info:
             from info import table, record_index, field_index, field_name
             from info import some_record, some_record_copy
 
@@ -323,7 +329,7 @@ class TestSacramentoRealEstateTransactions:
         Checks to see if modifications to a `CommaTable` object are correctly
         propagated where expected, when fields are edited by key (dict access).
         """
-        with extradict.MapGetter(table_info) as info:
+        with MapGetter(table_info) as info:
             from info import table, record_index, field_index, field_name
             from info import some_record, some_record_copy
 
@@ -342,7 +348,7 @@ class TestSacramentoRealEstateTransactions:
         Checks to see if modifications to a `CommaTable` object are correctly
         propagated where expected, when fields are edited by key (dict access).
         """
-        with extradict.MapGetter(table_info) as info:
+        with MapGetter(table_info) as info:
             from info import table, record_index, field_index, field_name
             from info import some_record, some_record_copy
 
@@ -361,7 +367,7 @@ class TestSacramentoRealEstateTransactions:
         Checks to see if modifications to a `CommaTable` object are correctly
         propagated where expected, when fields are edited by key (dict access).
         """
-        with extradict.MapGetter(table_info) as info:
+        with MapGetter(table_info) as info:
             from info import table, record_index, field_index, field_name
             from info import some_record, some_record_copy
 
@@ -380,7 +386,7 @@ class TestSacramentoRealEstateTransactions:
     #     Checks to see if modifications to a `CommaTable` object are correctly
     #     propagated where expected, when fields are edited by key (dict access).
     #     """
-    #     with extradict.MapGetter(table_info) as info:
+    #     with MapGetter(table_info) as info:
     #         from info import table, record_index, field_index, field_name, original_value
     #         from info import some_record, some_record_copy
     #
