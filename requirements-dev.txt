@@ -37,6 +37,7 @@ requests-mock==1.8.0
 six==1.15.0
 snowballstemmer==2.0.0
 sphinx==3.1.2
+sphinx-autodoc-typehints==1.11.0; python_version >= "3.6" and python_version < "4.0"
 sphinx-rtd-theme==0.5.0
 sphinxcontrib-applehelp==1.0.2
 sphinxcontrib-devhelp==1.0.2

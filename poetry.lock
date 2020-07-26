@@ -506,7 +506,7 @@ category = "dev"
 description = "Type hints (PEP 484) support for the Sphinx autodoc extension"
 marker = "python_version >= \"3.6\" and python_version < \"4.0\""
 name = "sphinx-autodoc-typehints"
-optional = true
+optional = false
 python-versions = ">=3.5.2"
 version = "1.11.0"
 
@@ -716,7 +716,7 @@ autodetect = ["binaryornot", "clevercsv", "chardet"]
 net = ["requests"]
 
 [metadata]
-content-hash = "1618767a13b40d6c5abeb7bbe6747f0621f4b1e1b0bcd31a3f32155bbfd67d98"
+content-hash = "46180b6ac5e67232d6ccacb5d21cf6eb205cd2144e07972859027b236ccf4897"
 python-versions = "^3.6"
 
 [metadata.files]
