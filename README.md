@@ -3,6 +3,7 @@
 ![pytest](https://github.com/jlumbroso/comma/workflows/pytest/badge.svg)
  [![codecov](https://codecov.io/gh/jlumbroso/comma/branch/master/graph/badge.svg)](https://codecov.io/gh/jlumbroso/comma)
  [![Documentation Status](https://readthedocs.org/projects/comma/badge/?version=latest)](https://comma.readthedocs.io/en/latest/?badge=latest)
+ [![Downloads](https://pepy.tech/badge/comma)](https://pepy.tech/project/comma)
  [![Run on Repl.it](https://repl.it/badge/github/jlumbroso/comma)](https://repl.it/github/jlumbroso/comma)
  [![Stargazers](https://img.shields.io/github/stars/jlumbroso/comma?style=social)](https://github.com/jlumbroso/comma)
 
