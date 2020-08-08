@@ -43,6 +43,7 @@ TableType = typing.Union[
 def load(
     source: comma.typing.SourceType,
     encoding: str = None,
+    force_header: bool = False,
     delimiters: typing.Optional[typing.Iterable[str]] = None,
 ) -> typing.Optional[comma.classes.table.CommaTable]:
     """
@@ -75,6 +76,10 @@ def load(
 
     csv_rows_raw = csv_comma_info["rows"]
     csv_header = csv_comma_info["header"]
+
+    if force_header and csv_header is None and len(csv_rows_raw) > 1:
+        csv_header = csv_rows_raw[0]
+        csv_rows_raw = csv_rows_raw[1:]
 
     # create CommaFile object
     parent_comma_file = comma.classes.file.CommaFile(

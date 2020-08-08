@@ -1,4 +1,5 @@
 
+import collections
 import copy
 import io
 import typing
@@ -19,6 +20,9 @@ SOME_CSV_STRING_NO_HEADER = "\n".join(SOME_CSV_STRING.split("\n")[1:])
 SOME_CSV_STRING_HAS_HEADER = True
 SOME_CSV_STRING_ROW_COUNT = 2
 SOME_CSV_STRING_COL_COUNT = 3
+
+# this string is built to fool even clevercsv
+SOME_CSV_STRING_NO_HEADER_AUTODETECT = "a,a,a\na,a,a\na,a,a"
 
 SOME_EMPTY_STR = ""
 
@@ -54,6 +58,37 @@ class TestLoad:
         assert (len(obj) == SOME_CSV_STRING_ROW_COUNT)
         assert ((obj.header is not None) == SOME_CSV_STRING_HAS_HEADER)
         assert (len(obj.header) == SOME_CSV_STRING_COL_COUNT)
+
+    def test_load_with_force_header_effective(self):
+        """
+        Checks that `force_header` forces the use of the first row as a header,
+        when it is not normally used.
+        """
+        # the string is meant to not trigger the clevercsv autodetect
+        s = SOME_CSV_STRING_NO_HEADER_AUTODETECT
+
+        obj1 = comma.methods.load(s)
+        obj2 = comma.methods.load(s, force_header=True)
+
+        assert (len(obj1) - 1) == len(obj2)
+        assert not obj1.has_header
+        assert obj2.has_header
+        assert isinstance(obj1, collections.UserList)
+        assert isinstance(obj2, collections.UserDict)
+
+    def test_load_with_force_header_noop(self):
+        """
+        Checks that `force_header` forces the use of the first row as a header,
+        when it is not normally used.
+        """
+        # the string is meant to not trigger the clevercsv autodetect
+        s = SOME_CSV_STRING_NO_HEADER_AUTODETECT
+
+        obj1 = comma.methods.load(SOME_CSV_STRING)
+        obj2 = comma.methods.load(SOME_CSV_STRING, force_header=True)
+
+        assert obj1.has_header
+        assert obj2.has_header
 
 
 class TestDump:
