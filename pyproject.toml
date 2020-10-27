@@ -30,6 +30,20 @@ classifiers = [
     "Topic :: Text Processing :: General",
 ]
 
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+isolated_build = true
+envlist = py{36,37,38,39}
+
+[testenv]
+requires =
+    tox-poetry-dev-dependencies
+poetry_add_dev_dependencies = True
+commands =
+    pytest
+"""
+
 [tool.poetry.dependencies]
 python = "^3.6"
 requests = {version = "^2.23.0", optional = true}
@@ -51,6 +65,7 @@ sphinx-autodoc-typehints = {version = "^1.11.0", python = "^3.6"}
 sphinx-rtd-theme = "^0.5.0"
 doc8 = {version = "^0.8.1", optional = true}
 tox = "^3.17.1"
+tox-poetry-dev-dependencies = "^0.0.5"
 
 [tool.poetry.extras]
 autodetect = ["binaryornot", "clevercsv", "chardet"]
