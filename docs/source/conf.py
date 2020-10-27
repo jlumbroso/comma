@@ -45,7 +45,7 @@ except ImportError:
 extensions = [
     "sphinx_rtd_theme",
     "sphinx.ext.autodoc",
-    "sphinx_autodoc_typehints",
+    "sphinx.ext.autodoc.typehints",
     "sphinx.ext.coverage",
     "sphinx.ext.napoleon",
 ]
@@ -57,6 +57,9 @@ templates_path = ["_templates"]
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
+
+# Autodoc Type Hints turned on (beta in 2.4, core in 3.x)
+autodoc_typehints = 'description'
 
 
 # -- Options for HTML output -------------------------------------------------
