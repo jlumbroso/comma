@@ -4,7 +4,7 @@ import re
 import comma
 
 
-VERSION_NUMBER = "0.5.3"
+VERSION_NUMBER = "0.5.4"
 POETRY_FILE = "pyproject.toml"
 
 
@@ -24,7 +24,8 @@ def get_pyproject_version() -> str:
     try:
         pyproject_src = open(pyproject_path).read()
     except UnicodeDecodeError:
-        pyproject_src = open(pyproject_path, "rb").read().decode(encoding="utf-8")
+        pyproject_src = open(
+            pyproject_path, "rb").read().decode(encoding="utf-8")
     version_match = re.search(
         r"version\s*=\s*\"([^\"]*)\"",
         pyproject_src)
