@@ -60,7 +60,7 @@ detect_csv_type = _default_detect_csv_type
 
 try:
     import clevercsv
-    
+
     def detect_csv_type(
         sample: typing.AnyStr,
         delimiters: typing.Optional[typing.Iterable[typing.AnyStr]] = None
@@ -76,8 +76,10 @@ try:
 
         sniffer = clevercsv.Sniffer()
         truncated_sample = sample[:comma.helpers.MAX_SAMPLE_CHUNKSIZE]
-        simple_dialect = sniffer.detect(sample=truncated_sample, delimiters=delimiters)
-        line_terminator = comma.helpers.detect_line_terminator(truncated_sample)
+        simple_dialect = sniffer.detect(
+            sample=truncated_sample, delimiters=delimiters)
+        line_terminator = comma.helpers.detect_line_terminator(
+            truncated_sample)
 
         dialect = simple_dialect.to_csv_dialect()
         dialect.lineterminator = line_terminator
@@ -108,7 +110,8 @@ except ImportError:  # pragma: no cover
 
 # In case the package is not available: Define our own helper method
 # Based on file(1), see https://stackoverflow.com/a/7392391/408734
-TEXT_CHARS = bytearray({7,8,9,10,12,13,27} | set(range(0x20, 0x100)) - {0x7f})
+TEXT_CHARS = bytearray({7, 8, 9, 10, 12, 13, 27} |
+                       set(range(0x20, 0x100)) - {0x7f})
 
 
 def _is_binary_string_internal(bytestring: typing.AnyStr) -> bool:
@@ -116,6 +119,9 @@ def _is_binary_string_internal(bytestring: typing.AnyStr) -> bool:
     Detect, using heuristics, whether a string of bytes is text or binary data.
     If available, this will use the `binaryornot` lightweight package.
     """
+    if bytestring is None or bytestring == '':
+        return False
+
     try:
         # PY 3 version
         return bool(bytestring.translate(None, TEXT_CHARS))
@@ -130,7 +136,7 @@ try:
     # See https://github.com/audreyr/binaryornot/
     import binaryornot
     import binaryornot.helpers
-    
+
     # Alias to helper method
     _is_binary_string = binaryornot.helpers.is_binary_string
 
@@ -143,19 +149,19 @@ def is_binary_string(bytestring: typing.AnyStr, truncate: bool = True) -> bool:
     Detect, using heuristics, whether a string of bytes is text or binary data.
     If available, this will use the `binaryornot` lightweight package.
     """
-    
+
     if bytestring is None:
         return False
 
     try:
         bytestring_length = len(bytestring)
-        
+
     except TypeError:
         return False
-    
+
     if truncate and bytestring_length > comma.helpers.MAX_SAMPLE_CHUNKSIZE:
         return _is_binary_string(bytestring[:comma.helpers.MAX_SAMPLE_CHUNKSIZE])
-    
+
     return _is_binary_string(bytestring)
 
 
@@ -226,7 +232,7 @@ detect_encoding = _detect_encoding_by_bom
 
 try:
     import chardet
-    
+
     def detect_encoding(
         sample: typing.AnyStr,
         default: typing.Optional[str] = "utf-8"
@@ -252,15 +258,13 @@ try:
         encoding = _detect_encoding_by_bom(sample)
         if encoding is not None:
             return encoding
-        
+
         # If that doesn't work, try a heuristic
         result = chardet.detect(sample)
         if result is not None and result.get("encoding") is not None:
             return result.get("encoding")
-        
+
         return default
-    
+
 except ImportError:  # pragma: no cover
     chardet = None
-
-
